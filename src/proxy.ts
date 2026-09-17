@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { defaultLocale, isLocale, locales } from "@/i18n/config";
+import { site } from "@/lib/site";
 
 function preferredLocale(header: string | null) {
   if (!header) return defaultLocale;
@@ -19,6 +20,14 @@ function preferredLocale(header: string | null) {
 }
 
 export function proxy(request: NextRequest) {
+  /** One canonical host, so search engines never index the site twice. */
+  if (request.headers.get("host") === `www.${site.domain}`) {
+    const canonical = request.nextUrl.clone();
+    canonical.host = site.domain;
+    canonical.port = "";
+    return NextResponse.redirect(canonical, 308);
+  }
+
   const { pathname } = request.nextUrl;
   const hasLocale = locales.some(
     (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`),
