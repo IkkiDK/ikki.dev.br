@@ -1,0 +1,58 @@
+## The shape of the problem
+
+A city already produces the data an operations centre needs. The trouble is where it lives: plate-reading cameras on poles, traffic controllers, transit vehicles reporting position, streetlights, weather stations, IoT sensors. None of them were built to talk to each other, most speak a different protocol, and several belong to vendors who will never change anything for you.
+
+The platform’s job is to turn all of that into one picture, in real time, for operators who need to act on it within seconds.
+
+> Client cities and equipment vendors are deliberately unnamed here.
+
+## What I own
+
+I am the primary author of several services and a contributor across the platform:
+
+- The **plate recognition (LPR/ANPR) webhook integration** — the path described on the home page.
+- The **PTZ camera control service** and the React 19 overlay operators drive it from.
+- The **KPI aggregation service**, which turns traffic, weather and infrastructure data into standardised, multi-tenant indicators.
+- A set of **urban telemetry simulators** in Go.
+- The **camera mosaic** in the operations dashboard.
+
+I also contributed to the integration services for real-time public transit, IoT sensor telemetry, and public lighting over MQTT.
+
+## Deduplication is what makes alerts usable
+
+A camera watching a lane does not see a car once. It sees it in a dozen frames as it approaches, and each of those can arrive as its own webhook. Without something in the way, one vehicle passing one camera produces a wall of identical alerts, and the operator learns to ignore the alert panel — which defeats the entire system.
+
+Each event gets a SHA-256 fingerprint over the fields that identify the *passage* rather than the *frame*. Repeats collapse. The operator sees one vehicle, once.
+
+The rest of the service is the enrichment path: pull the plate crop from the camera, push it to storage, extract vehicle metadata, check the plate against restriction lists, and raise an alert at the priority of the highest-ranking list it matched. A stolen vehicle and an unpaid toll are not the same alert, and the ordering is the product.
+
+Everything is exposed as Prometheus metrics, because a silent integration service is indistinguishable from a working one until someone asks why the alerts stopped.
+
+## PTZ control is a latency problem wearing a UI
+
+An operator drags a directional dial and expects the camera to move *now*. Anything that feels like lag gets compensated for, the operator overshoots, and they end up fighting the controls.
+
+The Go service handles the command path to the camera; the React overlay renders directly over the live video stream — directional dial, zoom, focus and iris, with custom hooks for the commands a given camera model supports. The overlay has to sit on top of a stream without interfering with it, which is a more constrained UI problem than it first appears.
+
+## Simulating a city, because you cannot stage one
+
+You cannot ask a municipality to arrange a stolen car, break a traffic light, or drive a bus along a specific route so you can test a deploy. But everything downstream of those events still has to be verified.
+
+So I wrote simulators in Go for the things the platform ingests:
+
+- traffic lights, including their **failure modes**, not just their happy path
+- public lighting
+- GPS tracking that walks a vehicle along a GeoJSON route
+- facial detection events
+
+Each runs as a set of goroutines with shared state behind mutexes, producing traffic that looks like the real feed. The result is that the entire pipeline — ingestion, enrichment, aggregation, dashboard — can be exercised end to end without a single piece of physical hardware. It changed how quickly we could trust a change.
+
+Writing the failure modes was the part that paid off most. Systems that only ever see well-behaved input are systems nobody has tested.
+
+## Indicators that survive comparison
+
+Every city measures itself slightly differently, and a platform serving several of them cannot let that leak into the dashboard. The KPI service combines traffic, weather and urban-infrastructure data into indicators that mean the same thing in each tenant — which is mostly a normalisation and definitions problem, and only incidentally a code problem.
+
+## The mosaic
+
+Operators watch many cameras at once, and no two of them want the same layout. The mosaic is a React component with draggable and resizable tiles, saved presets, search, and a Leaflet map — so an operator can arrange their own wall and get it back tomorrow. It is deployed per city on Kubernetes.

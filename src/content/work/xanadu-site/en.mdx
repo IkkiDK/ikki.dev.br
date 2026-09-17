@@ -1,0 +1,31 @@
+## The problem
+
+A haulage company with no web presence at all. Customers found it the way they always had: somebody passed on a phone number. That works until the person with the number leaves, or until a prospective client wants to check the company is real before trusting it with a load.
+
+## The constraint that shaped everything
+
+The audience opens this on a phone, frequently on a poor connection — a truck stop, a loading dock, the side of a road. And when they decide to make contact, they do it on WhatsApp. Not email, not a contact form that sends a message into a mailbox nobody watches.
+
+That settled the design before any of the visual decisions:
+
+- **One page.** Navigation is a cost, and there was not enough content to justify it.
+- **WhatsApp as the primary action**, one tap away, rather than a form that promises a reply.
+- **A map**, because “where are you actually based” is a real trust question in haulage.
+
+## Keeping the hero video out of the bundle
+
+The page opens on a video. Committing that to the repository would mean shipping megabytes through the application’s own deploy on every push, and serving one fixed encoding to every device regardless of what it can handle.
+
+It lives on Cloudinary instead, which does the transcoding and delivery. The deploy stays small, and the phone on the bad connection gets something appropriate to it.
+
+Framer Motion handles the animated sections. On a marketing page this is the one place where motion is earning its keep — it is the only thing distinguishing a live company from an abandoned template.
+
+## The preview-deployment problem
+
+This is the part worth writing down. Vercel gives every push a preview URL on `*.vercel.app`, and those URLs are publicly reachable. Left alone, search engines will happily index them, and the company ends up competing with duplicate copies of its own site on domains it does not own.
+
+The fix is redirects from the preview domains to production and the right SEO headers, so there is exactly one canonical address. It takes ten minutes and it is invisible when done — which is precisely why it usually is not.
+
+## Honest about the scope
+
+This is the smallest system on this site by a wide margin: no backend, no database, no state to speak of. It is here because the constraints were real and they changed the shape of the result. A site built for an office worker on fibre would have been a different site, and a worse one for the people who actually use this.

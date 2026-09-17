@@ -1,0 +1,59 @@
+## O problema
+
+Uma transportadora inspeciona cada veículo duas vezes: quando ele sai do pátio e quando volta. Esse processo era em papel. O motorista preenchia um formulário na prancheta, a folha ia para uma pasta e, quando alguém precisava dela — uma quebra, um sinistro, uma discussão sobre quem amassou a porta —, ela estava perdida, ilegível ou arquivada no mês errado.
+
+Ninguém conseguia responder à única pergunta que importava: *em que estado esse caminhão estava no dia 14, e quem assinou por ele?*
+
+## O que o sistema faz
+
+- Checklists digitais versionados — 58 itens para caminhão, 19 para máquina — executados na entrega e na devolução do veículo.
+- Um PWA offline-first que as equipes de campo usam para registrar inspeções e fotos sem conexão, sincronizando depois.
+- Um admin web feito com `html/template` e htmx para ativos, usuários, papéis e relatórios.
+- Controle de acesso por papel: motorista, supervisor e administrador.
+- Um fluxo de não conformidade, para que um item reprovado vire responsabilidade de alguém em vez de uma observação que ninguém lê.
+- Uma cadeia criptográfica de evidências que torna os registros à prova de adulteração.
+
+## Versionar o checklist veio primeiro
+
+A primeira decisão de verdade não tinha nada a ver com funcionar offline. Era esta: se você edita um checklist, toda inspeção já preenchida com ele muda de significado silenciosamente. Uma inspeção que passou por 58 verificações passa a alegar que passou por 59 — e uma delas nunca foi olhada.
+
+Então versões de checklist são imutáveis, e cada inspeção fixa a versão exata contra a qual foi executada. Acrescentar um item cria uma nova versão; os registros antigos continuam apontando para a versão antiga e continuam dizendo a verdade. Custa um join e um pouco de disciplina na tela de administração, e é a diferença entre um registro e um palpite.
+
+## Offline-first é, na verdade, um problema de resolução de conflitos
+
+“Funciona offline” soa como um recurso de armazenamento. Não é. Guardar uma inspeção localmente é a metade fácil — o navegador faz isso de bom grado. A metade difícil é o que acontece quando duas pessoas, dois aparelhos e um cache desatualizado voltam à rede com opiniões sobre o mesmo veículo.
+
+O desenho que tornou isso tratável foi tratar a inspeção como um **evento append-only**, e não como uma linha mutável. A equipe não edita o estado do caminhão; ela registra que, em determinado momento e contra determinada versão do checklist, estes itens estavam nesta condição. Duas inspeções do mesmo veículo nunca entram em conflito, porque são dois fatos diferentes sobre dois momentos diferentes. A sincronização vira uma questão de entrega e deduplicação, não de merge.
+
+As fotos sincronizam separadamente do corpo da inspeção, porque um checklist de 58 itens com algumas fotos é um payload pequeno e vários grandes — e eles falham por motivos diferentes numa conexão de posto de estrada.
+
+## Tornar os registros confiáveis
+
+Uma trilha de auditoria que pode ser editada é decoração. Se o objetivo do sistema é responder a uma pergunta meses depois, na frente de alguém com dinheiro em jogo, então “o banco diz que sim” precisa significar alguma coisa.
+
+Os registros são selados num envelope write-once com uma cadeia criptográfica, de modo que alterar uma inspeção passada quebra a cadeia e fica visível. Isso não torna a adulteração impossível — nada além de um terceiro confiável tornaria —, mas a torna **evidente**, que é para isso que uma trilha de auditoria serve de fato.
+
+## Rodando em produção
+
+Esta é a parte que projetos solo costumam pular, e a parte em que eu mais queria praticar:
+
+| Preocupação | Como é tratada |
+| --- | --- |
+| Mudanças de schema | Migrações com Goose, versionadas e no repositório |
+| Regressões | Testes unitários e de integração a cada push, via GitHub Actions |
+| Uploads lentos ou hostis | Timeouts explícitos no caminho de upload |
+| Deploys | Graceful shutdown, para não descartar inspeções em andamento |
+| Perder o banco | Backups com `pg_dump` e recuperação point-in-time |
+| Esquecer o porquê | Sete Architecture Decision Records |
+
+Os ADRs acabaram importando mais do que eu esperava. Seis meses depois, eu não conseguiria reconstruir com segurança por que escolhi uma abordagem em vez de outra só pelo código — o código mostra o que venceu, nunca o que perdeu.
+
+## Por que htmx, e não React
+
+O admin é formulário e tabela. Todo estado que ele manipula vive no Postgres, e o servidor já sabe renderizá-lo. Partir para React significaria um build step, uma segunda cópia do modelo de domínio em TypeScript e um problema de sincronização que eu teria criado sozinho.
+
+`html/template` com htmx dá ao admin atualizações parciais sem nada disso. A complexidade de cliente vai para onde ela é realmente inevitável: o PWA offline, que de fato precisa guardar estado, enfileirar trabalho e resolvê-lo depois.
+
+## O que eu faria diferente
+
+A sincronização de fotos cresceu organicamente e hoje eu a projetaria de forma deliberada — um único caminho de upload retomável com backoff explícito, em vez da lógica de retry que acabei escrevendo. Também escreveria os ADRs enquanto tomava as decisões, e não logo depois; o raciocínio é mais nítido antes de você começar a defendê-lo.

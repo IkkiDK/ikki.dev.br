@@ -1,0 +1,62 @@
+## The brief I set myself
+
+My capstone project had to close the whole loop: something physical happens, and a number moves in a browser, with nothing hand-waved in between. A greenhouse was a good excuse — it has several quantities worth measuring, it responds slowly enough to observe, and it can be watered automatically, which means the system gets to *act* and not just watch.
+
+## The full path
+
+```
+soil / air sensors
+      ↓  analogue voltage
+    ESP32  ── ADC read, calibration
+      ↓  HTTP POST
+   Go API  ── /api/sensor/push
+      ↓  broadcast
+  WebSocket ── /ws
+      ↓
+React dashboard ── Recharts
+      ↘  history
+      Supabase
+```
+
+Temperature, air humidity, light level and soil moisture, plus the state of the pump and the lamp.
+
+## Calibration was the real work
+
+This is the part I did not expect. An ADC does not hand you soil moisture — it hands you a number between 0 and 4095 that corresponds to a voltage, which corresponds to a resistance, which is *related* to moisture by a curve that depends on the sensor, the soil and how deep you pushed the probe in.
+
+Turning that into a percentage anyone can read meant taking reference readings at genuinely dry and genuinely saturated soil and mapping between them. The readings drift, the cheap resistive probes corrode, and two sensors of the same model do not agree with each other.
+
+The lesson was less about electronics than about trust: a value is only as good as the procedure that produced it, and the dashboard says nothing about that procedure. Every clean-looking chart has one of these underneath it.
+
+## Four handlers, on purpose
+
+The Go API has a deliberately small surface:
+
+| Endpoint | Job |
+| --- | --- |
+| `POST /api/sensor/push` | Receive a reading from the hardware |
+| `GET /api/sensor/latest` | Current state, for a dashboard that just loaded |
+| `GET /ws` | Live broadcast to connected dashboards |
+| `GET /health` | Is the service up |
+
+`/api/sensor/latest` exists because of a real failure: a dashboard opening between broadcasts has nothing to draw and shows an empty chart until the next reading arrives. A live stream needs a way to answer “what is true right now” for anyone who just walked in.
+
+## WebSocket, not polling
+
+Polling means choosing between stale readings and wasted requests, and the ESP32 pushes on its own schedule anyway. With `gorilla/websocket`, a reading arrives at the API and goes straight out to every connected dashboard. The greenhouse’s actual latency — a pump starting, soil responding — is minutes; the software should not be the slow part of that.
+
+## Live and historical are different problems
+
+The WebSocket answers “what is happening”. It cannot answer “what happened on Tuesday”, and holding history in memory would lose it on every deploy. Readings persist to Supabase, and the dashboard queries by date range.
+
+Timezones were the trap. The hardware reports UTC, the greenhouse is in Brazil at UTC−3, and a chart of “today” that silently uses the wrong one is wrong in a way that looks completely plausible — the shape of the curve is right, it is just shifted. Bugs that produce believable output are the ones that survive.
+
+## Making it act
+
+Readings drive the irrigation pump, so the greenhouse waters itself when soil moisture drops below threshold, and the dashboard reports pump and light status alongside the measurements. Telemetry also flows through an MQTT/Mosquitto pipeline.
+
+The API runs on Render and the dashboard on Vercel.
+
+## What it taught me
+
+Hardware does not respect your abstractions. A loose jumper wire produces *exactly* the same symptom as a bug in your parsing code — a value that is null, or zero, or wildly wrong — and you will spend an hour in the debugger before you think to wiggle the connector. Building the whole path myself is the only reason I can now tell those two apart quickly.

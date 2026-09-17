@@ -1,0 +1,59 @@
+## The problem
+
+A haulage company inspects every vehicle twice: once when it leaves the yard, once when it comes back. That process was paper. A driver filled in a form on a clipboard, the sheet went into a folder, and by the time anyone needed it — a breakdown, an insurance claim, an argument about who put the dent in the door — it was missing, illegible, or filed under the wrong month.
+
+Nobody could answer the only question that mattered: *what condition was this truck in on the 14th, and who signed for it?*
+
+## What the system does
+
+- Versioned digital checklists — 58 items for a truck, 19 for a machine — executed at hand-out and hand-back.
+- An offline-first PWA that field crews use to capture inspections and photos with no connectivity, syncing later.
+- A web admin built with `html/template` and htmx for assets, users, roles and reports.
+- Role-based access control across three roles: driver, supervisor, administrator.
+- A nonconformity workflow, so a failed item becomes something someone owns rather than a note nobody reads.
+- A cryptographic evidence chain that makes the records tamper-evident.
+
+## Versioning the checklist came first
+
+The first real decision had nothing to do with offline support. It was this: if you edit a checklist, every inspection ever filled in against it silently changes meaning. An inspection that passed 58 checks now claims to have passed 59, and one of them was never actually looked at.
+
+So checklist versions are immutable, and every inspection pins the exact version it was executed against. Adding an item creates a new version; historical records keep pointing at the old one and keep telling the truth. It costs a join and a little discipline in the admin UI, and it is the difference between a record and a guess.
+
+## Offline-first is really a conflict-resolution problem
+
+“Works offline” sounds like a storage feature. It isn’t. Storing an inspection locally is the easy half — the browser will happily hold it. The hard half is what happens when two people, two devices, and a stale cache all come back online with opinions about the same vehicle.
+
+The design that made this tractable was to treat an inspection as an **append-only event**, not a mutable row. A crew member doesn’t edit the truck’s state; they record that at a given time, against a given checklist version, these items were in this condition. Two inspections of the same vehicle are never in conflict, because they are two different facts about two different moments. Sync becomes a matter of delivery and deduplication, not merging.
+
+Photos sync separately from the inspection body, because a checklist with 58 items and a handful of photos is one small payload and several large ones, and they fail for different reasons on a truck-stop connection.
+
+## Making the records worth trusting
+
+An audit trail that can be edited is decoration. If the point of the system is to answer a question months later, in front of someone who has money riding on the answer, then “the database says so” has to mean something.
+
+Records are sealed into a write-once envelope with a cryptographic chain, so altering a past inspection breaks the chain and shows. It doesn’t make tampering impossible — nothing short of a third party does — but it makes tampering *evident*, which is what an audit trail is actually for.
+
+## Running it in production
+
+This is the part solo projects usually skip, and the part I most wanted the practice in:
+
+| Concern | How it is handled |
+| --- | --- |
+| Schema changes | Goose migrations, versioned and checked in |
+| Regressions | Unit and integration tests on every push via GitHub Actions |
+| Slow or hostile uploads | Explicit timeouts on the upload path |
+| Deploys | Graceful shutdown, so in-flight inspections are not dropped |
+| Losing the database | `pg_dump` backups plus point-in-time recovery |
+| Forgetting why | Seven Architecture Decision Records |
+
+The ADRs turned out to matter more than I expected. Six months on, I could not reliably reconstruct why I chose one approach over another from the code alone — the code shows what won, never what lost.
+
+## Why htmx, and not React
+
+The admin is forms and tables. Every piece of state it cares about lives in Postgres, and the server already knows how to render it. Reaching for React would have meant a build step, a second copy of the domain model in TypeScript, and a synchronisation problem I would have created for myself.
+
+`html/template` with htmx gives the admin partial updates without any of that. The client-side complexity goes where it is genuinely unavoidable: the offline PWA, which really does need to hold state, queue work and resolve it later.
+
+## What I would do differently
+
+Photo sync grew organically and I would design it deliberately now — a single resumable upload path with explicit backoff, rather than the retry logic I ended up with. I would also write the ADRs as I made the decisions instead of shortly after; the reasoning is sharpest before you have started defending it.

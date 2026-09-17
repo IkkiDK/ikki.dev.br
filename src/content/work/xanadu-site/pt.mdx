@@ -1,0 +1,31 @@
+## O problema
+
+Uma transportadora sem nenhuma presença na web. Os clientes a encontravam do jeito de sempre: alguém passava um telefone adiante. Isso funciona até a pessoa que tinha o número sair da empresa, ou até um cliente em potencial querer confirmar que a transportadora existe antes de confiar uma carga a ela.
+
+## A restrição que definiu tudo
+
+O público abre isso no celular, com frequência numa conexão ruim — um posto de estrada, uma doca de carregamento, o acostamento. E, quando decide entrar em contato, faz isso pelo WhatsApp. Não por e-mail, nem por um formulário que manda a mensagem para uma caixa que ninguém acompanha.
+
+Isso resolveu o design antes de qualquer decisão visual:
+
+- **Uma página só.** Navegação tem custo, e não havia conteúdo que a justificasse.
+- **WhatsApp como ação principal**, a um toque, em vez de um formulário que promete uma resposta.
+- **Um mapa**, porque “onde vocês ficam de verdade” é uma pergunta real de confiança no transporte rodoviário.
+
+## Manter o vídeo do topo fora do bundle
+
+A página abre com um vídeo. Commitar isso no repositório significaria trafegar megabytes pelo deploy da própria aplicação a cada push, e servir uma codificação fixa para todo aparelho, independentemente do que ele aguenta.
+
+Em vez disso, ele vive no Cloudinary, que cuida do transcode e da entrega. O deploy continua pequeno, e o celular na conexão ruim recebe algo adequado a ele.
+
+O Framer Motion cuida das seções animadas. Numa página institucional, esse é o único lugar em que o movimento se paga — é o que distingue uma empresa viva de um template abandonado.
+
+## O problema dos deploys de preview
+
+Essa é a parte que vale anotar. A Vercel dá a cada push uma URL de preview em `*.vercel.app`, e essas URLs são publicamente acessíveis. Sem intervenção, os buscadores indexam essas páginas de bom grado, e a empresa acaba competindo com cópias duplicadas do próprio site em domínios que não são dela.
+
+A correção são redirects dos domínios de preview para o de produção e os headers de SEO corretos, de modo que exista exatamente um endereço canônico. Leva dez minutos e é invisível quando bem feito — que é exatamente por que normalmente não é feito.
+
+## Honestidade sobre o escopo
+
+Este é, de longe, o menor sistema deste site: sem backend, sem banco, praticamente sem estado. Está aqui porque as restrições eram reais e mudaram o formato do resultado. Um site feito para alguém num escritório com fibra teria sido outro site — e pior para as pessoas que de fato usam este.

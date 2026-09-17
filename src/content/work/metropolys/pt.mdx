@@ -1,0 +1,58 @@
+## O formato do problema
+
+Uma cidade já produz os dados de que um centro de operações precisa. O problema é onde eles ficam: câmeras de leitura de placa em postes, controladores de semáforo, veículos de transporte reportando posição, iluminação pública, estações meteorológicas, sensores IoT. Nenhum deles foi feito para conversar com os outros, a maioria fala um protocolo diferente e vários pertencem a fornecedores que nunca vão mudar nada por você.
+
+O trabalho da plataforma é transformar tudo isso em uma imagem só, em tempo real, para operadores que precisam agir em segundos.
+
+> As cidades clientes e os fornecedores de equipamento são deliberadamente não identificados aqui.
+
+## O que é meu
+
+Sou autor principal de vários serviços e contribuidor na plataforma como um todo:
+
+- A **integração por webhook de reconhecimento de placas (LPR/ANPR)** — o caminho descrito na página inicial.
+- O **serviço de controle de câmeras PTZ** e o overlay em React 19 de onde os operadores o comandam.
+- O **serviço de agregação de KPIs**, que transforma dados de trânsito, clima e infraestrutura em indicadores padronizados e multi-tenant.
+- Um conjunto de **simuladores de telemetria urbana** em Go.
+- O **mosaico de câmeras** do painel de operações.
+
+Também contribuí para os serviços de integração de transporte público em tempo real, telemetria de sensores IoT e iluminação pública sobre MQTT.
+
+## A deduplicação é o que torna os alertas utilizáveis
+
+Uma câmera que observa uma faixa não vê o carro uma vez. Vê em uma dezena de quadros conforme ele se aproxima, e cada um deles pode chegar como um webhook próprio. Sem nada no caminho, um veículo passando por uma câmera gera uma parede de alertas idênticos, e o operador aprende a ignorar o painel de alertas — o que destrói o sistema inteiro.
+
+Cada evento recebe um fingerprint SHA-256 sobre os campos que identificam a *passagem*, e não o *quadro*. As repetições colapsam. O operador vê um veículo, uma vez.
+
+O resto do serviço é o caminho de enriquecimento: baixar o recorte da placa da câmera, gravá-lo no storage, extrair os metadados do veículo, cruzar a placa com as listas de restrição e disparar o alerta na prioridade da lista de maior peso que deu match. Um veículo roubado e um pedágio em aberto não são o mesmo alerta, e essa ordenação é o produto.
+
+Tudo é exposto como métricas Prometheus, porque um serviço de integração silencioso é indistinguível de um serviço funcionando — até alguém perguntar por que os alertas pararam.
+
+## Controle PTZ é um problema de latência vestido de interface
+
+O operador arrasta um direcional e espera que a câmera se mova *agora*. Qualquer coisa que pareça atraso é compensada por ele, o operador passa do ponto, e acaba brigando com o controle.
+
+O serviço em Go cuida do caminho de comando até a câmera; o overlay em React é renderizado diretamente sobre o vídeo ao vivo — direcional, zoom, foco e íris, com hooks personalizados para os comandos que cada modelo de câmera suporta. O overlay precisa ficar sobre o stream sem interferir nele, o que é um problema de UI mais restrito do que parece à primeira vista.
+
+## Simular uma cidade, porque não dá para encenar uma
+
+Você não pode pedir a uma prefeitura que providencie um carro roubado, quebre um semáforo ou dirija um ônibus por uma rota específica para testar um deploy. Mas tudo o que vem depois desses eventos ainda precisa ser verificado.
+
+Então escrevi simuladores em Go para o que a plataforma consome:
+
+- semáforos, incluindo seus **modos de falha**, não só o caminho feliz
+- iluminação pública
+- rastreamento GPS que percorre um veículo ao longo de uma rota GeoJSON
+- eventos de detecção facial
+
+Cada um roda como um conjunto de goroutines com estado compartilhado protegido por mutexes, produzindo tráfego parecido com o feed real. O resultado é que o pipeline inteiro — ingestão, enriquecimento, agregação, dashboard — pode ser exercitado de ponta a ponta sem uma única peça de hardware físico. Isso mudou a velocidade com que passamos a confiar em uma mudança.
+
+Escrever os modos de falha foi a parte que mais compensou. Sistemas que só veem entrada bem-comportada são sistemas que ninguém testou.
+
+## Indicadores que sobrevivem à comparação
+
+Cada cidade se mede de um jeito um pouco diferente, e uma plataforma que atende várias não pode deixar isso vazar para o painel. O serviço de KPIs combina dados de trânsito, clima e infraestrutura urbana em indicadores que significam a mesma coisa em cada tenant — o que é sobretudo um problema de normalização e de definições, e só incidentalmente um problema de código.
+
+## O mosaico
+
+Operadores acompanham muitas câmeras ao mesmo tempo, e não há dois que queiram o mesmo arranjo. O mosaico é um componente React com blocos arrastáveis e redimensionáveis, presets salvos, busca e um mapa Leaflet — para que cada operador monte a própria parede e a encontre igual no dia seguinte. É implantado por cidade no Kubernetes.

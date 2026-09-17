@@ -1,0 +1,62 @@
+## O escopo que eu mesmo defini
+
+Meu TCC precisava fechar o ciclo inteiro: algo físico acontece e um número se move no navegador, sem nada resolvido na base do “depois eu vejo”. Uma estufa foi um bom pretexto — tem várias grandezas que valem a pena medir, responde devagar o suficiente para ser observada e pode ser irrigada automaticamente, o que faz o sistema **agir** em vez de apenas assistir.
+
+## O caminho completo
+
+```
+sensores de solo / ar
+      ↓  tensão analógica
+    ESP32  ── leitura ADC, calibração
+      ↓  HTTP POST
+    API Go  ── /api/sensor/push
+      ↓  broadcast
+  WebSocket ── /ws
+      ↓
+dashboard React ── Recharts
+      ↘  histórico
+      Supabase
+```
+
+Temperatura, umidade do ar, luminosidade e umidade do solo, mais o estado da bomba e da lâmpada.
+
+## A calibração era o trabalho de verdade
+
+Essa é a parte que eu não esperava. Um ADC não te entrega umidade do solo — entrega um número entre 0 e 4095 que corresponde a uma tensão, que corresponde a uma resistência, que se *relaciona* com a umidade por uma curva que depende do sensor, do solo e da profundidade em que você enfiou a sonda.
+
+Transformar isso em uma porcentagem legível exigiu leituras de referência com solo realmente seco e realmente saturado, e um mapeamento entre elas. As leituras derivam, as sondas resistivas baratas corroem, e dois sensores do mesmo modelo não concordam entre si.
+
+A lição foi menos sobre eletrônica e mais sobre confiança: um valor vale o quanto vale o procedimento que o produziu, e o dashboard não diz nada sobre esse procedimento. Todo gráfico de aparência limpa tem um desses embaixo.
+
+## Quatro handlers, de propósito
+
+A API em Go tem uma superfície deliberadamente pequena:
+
+| Endpoint | Função |
+| --- | --- |
+| `POST /api/sensor/push` | Recebe uma leitura do hardware |
+| `GET /api/sensor/latest` | Estado atual, para um dashboard recém-carregado |
+| `GET /ws` | Transmissão ao vivo para os dashboards conectados |
+| `GET /health` | O serviço está de pé |
+
+`/api/sensor/latest` existe por causa de uma falha real: um dashboard que abre entre dois broadcasts não tem o que desenhar e mostra um gráfico vazio até a próxima leitura chegar. Um stream ao vivo precisa de um jeito de responder “o que é verdade agora” para quem acabou de chegar.
+
+## WebSocket, não polling
+
+Polling obriga a escolher entre leituras velhas e requisições desperdiçadas — e o ESP32 envia no ritmo dele, de qualquer forma. Com `gorilla/websocket`, a leitura chega na API e sai direto para cada dashboard conectado. A latência real da estufa — uma bomba ligando, o solo respondendo — é de minutos; o software não deveria ser a parte lenta disso.
+
+## Ao vivo e histórico são problemas diferentes
+
+O WebSocket responde “o que está acontecendo”. Ele não responde “o que aconteceu na terça”, e manter o histórico em memória o perderia a cada deploy. As leituras são persistidas no Supabase, e o dashboard consulta por intervalo de datas.
+
+O fuso horário foi a armadilha. O hardware reporta em UTC, a estufa fica no Brasil em UTC−3, e um gráfico de “hoje” que silenciosamente usa o fuso errado está errado de um jeito totalmente plausível — o formato da curva está certo, só está deslocado. Bugs que produzem saída verossímil são os que sobrevivem.
+
+## Fazer o sistema agir
+
+As leituras acionam a bomba de irrigação, então a estufa se rega quando a umidade do solo cai abaixo do limite, e o dashboard reporta o estado da bomba e da lâmpada junto com as medições. A telemetria também passa por um pipeline MQTT/Mosquitto.
+
+A API roda no Render e o dashboard na Vercel.
+
+## O que isso me ensinou
+
+Hardware não respeita as suas abstrações. Um jumper solto produz *exatamente* o mesmo sintoma que um bug no seu código de parsing — um valor nulo, zerado ou absurdo — e você vai passar uma hora no debugger antes de pensar em mexer no conector. Ter construído o caminho inteiro é a única razão de eu hoje distinguir essas duas coisas rápido.

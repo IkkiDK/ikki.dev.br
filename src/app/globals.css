@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+@theme {
+  --color-sodium: #f0b429;
+  --color-live: #4fb8a8;
+  --color-ink: #14181d;
+  --color-surface: #1b2128;
+  --color-paper: #f2f4f3;
+
+  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-source-serif), ui-serif, Georgia, serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  --text-display: 4.5rem;
+  --text-display--line-height: 0.96;
+  --text-display--letter-spacing: -0.03em;
+}
+
+:root {
+  --bg: #f2f4f3;
+  --bg-raised: #fbfcfb;
+  --panel: #14181d;
+  --panel-fg: #f2f4f3;
+  --fg: #14181d;
+  --fg-muted: #5a6570;
+  --fg-faint: #8a959e;
+  --line: #d5dad8;
+  --line-strong: #b9c1bd;
+  --accent: #f0b429;
+  --accent-ink: #7a5200;
+  --live-ink: #1f6b60;
+  --btn-bg: #14181d;
+  --btn-fg: #f2f4f3;
+  --panel-ring: transparent;
+  color-scheme: light;
+}
+
+:root:not([data-theme="light"]) {
+  @media (prefers-color-scheme: dark) {
+    --bg: #14181d;
+    --bg-raised: #1b2128;
+    --panel: #0f1317;
+    --panel-fg: #f2f4f3;
+    --fg: #f2f4f3;
+    --fg-muted: #9aa6b0;
+    --fg-faint: #6e7b85;
+    --line: #2a323a;
+    --line-strong: #3b454f;
+    --accent: #f0b429;
+    --accent-ink: #f0b429;
+    --live-ink: #4fb8a8;
+    --btn-bg: #f2f4f3;
+    --btn-fg: #14181d;
+    --panel-ring: rgba(255, 255, 255, 0.09);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #14181d;
+  --bg-raised: #1b2128;
+  --panel: #0f1317;
+  --panel-fg: #f2f4f3;
+  --fg: #f2f4f3;
+  --fg-muted: #9aa6b0;
+  --fg-faint: #6e7b85;
+  --line: #2a323a;
+  --line-strong: #3b454f;
+  --accent: #f0b429;
+  --accent-ink: #f0b429;
+  --live-ink: #4fb8a8;
+  --btn-bg: #f2f4f3;
+  --btn-fg: #14181d;
+  --panel-ring: rgba(255, 255, 255, 0.09);
+  color-scheme: dark;
+}
+
+* {
+  border-color: var(--line);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+::selection {
+  background: var(--accent);
+  color: #14181d;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
