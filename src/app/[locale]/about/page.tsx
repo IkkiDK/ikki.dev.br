@@ -95,8 +95,13 @@ export default async function AboutPage({ params }: Params) {
         <h2 className="text-[1.6rem] font-semibold">{dict.contact.title}</h2>
         <p className="mt-3 max-w-[56ch] text-[var(--fg-muted)]">{dict.contact.body}</p>
 
-        <dl className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <dl className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <ContactItem label={dict.contact.emailLabel} href={`mailto:${site.email}`} value={site.email} />
+          <ContactItem
+            label={dict.contact.whatsappLabel}
+            href={`https://wa.me/${site.whatsapp.number}`}
+            value={site.whatsapp.display}
+          />
           <ContactItem label={dict.contact.githubLabel} href={site.github} value={site.githubHandle} />
           <ContactItem label={dict.contact.linkedinLabel} href={site.linkedin} value={site.linkedinHandle} />
           <ContactItem

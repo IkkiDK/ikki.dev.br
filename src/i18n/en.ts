@@ -24,7 +24,7 @@ export const en = {
     name: "Henrique Kasprzak",
     headline: "I build systems that read the physical world and keep the data honest.",
     intro:
-      "Full-stack developer in Curitiba, Brazil — Go on the backend, React on the front. At Metropolys I write the services behind a smart-city platform: plate recognition, camera control, and telemetry arriving from sensors across a city. Off the clock I build complete systems on my own, end to end.",
+      "Full-stack developer in Curitiba, Brazil — Go on the backend, React on the front. At Metropolys I write the services behind a smart-city platform: plate and face recognition, camera control, telemetry from sensors across a city, and the screens operators watch it all from. Off the clock I build complete systems on my own, end to end.",
     availability: "Open to backend and full-stack roles, remote or in Curitiba.",
     emailCta: "Get in touch",
     workCta: "Read the case studies",
@@ -70,7 +70,7 @@ export const en = {
       {
         key: "dedupe",
         label: "Deduplicated",
-        note: "A SHA-256 fingerprint drops repeat frames of the same car in the same pass.",
+        note: "Every event gets a deterministic SHA-256 fingerprint, so the same read delivered twice — a retried webhook, a second ingestion path — is stored once.",
         payload: `{
   "plate": "RJK4C19",
   "image": "anpr/2026/09/17/RJK4C19-1342.jpg",
@@ -124,7 +124,7 @@ export const en = {
   work: {
     title: "Selected work",
     intro:
-      "Four systems, written up the way I'd explain them to another engineer: what the problem actually was, what I chose, and what it cost.",
+      "Five systems, written up the way I'd explain them to another engineer: what the problem actually was, what I chose, and what it cost.",
     read: "Read the case study",
     present: "present",
     roleLabel: "Role",
@@ -137,18 +137,18 @@ export const en = {
     title: "About",
     lede: "Computer engineer, backend by instinct, shipping things that run in production.",
     body: [
-      "I'm finishing a Computer Engineering degree at Universidade Positivo while working as a developer at Metropolys, on a platform that pulls a city's data into one place in real time. Most of what I write is Go: webhook integrations for plate recognition and facial detection, a PTZ camera-control service, feeds for public transit and traffic, and sensor and street-lighting telemetry over MQTT. I also built the KPI service that turns all of it into comparable indicators across cities, and the simulators that let us test the whole pipeline without a single physical camera.",
-      "When something needs a front end, I build that too — a React overlay for driving PTZ cameras over a live video stream, and a camera mosaic with draggable tiles and a map for the operations dashboard.",
+      "I'm finishing a Computer Engineering degree at Universidade Positivo while working as a developer at Metropolys, on a platform that pulls a city's data into one place in real time. Most of what I write is Go: ingestion services for plate reads and face matches from camera platforms, with watchlist alerts for both; a PTZ camera-control service; feeds for public transit, traffic and weather; and sensor and street-lighting telemetry over MQTT. I also built the KPI service that turns all of it into comparable indicators across cities, and the simulators that let us test the whole pipeline without a single physical camera.",
+      "When something needs a front end, I build that too — a React overlay for driving PTZ cameras over a live video stream, a camera mosaic with draggable tiles and a map for the operations dashboard, and the product screens where an operator searches a plate, follows a vehicle across the city and manages the lists that raise alerts.",
       "Outside work I build complete systems alone, which is where I've learned the most: what a migration strategy is for, why an offline-first app is mostly a conflict-resolution problem, and how quickly an audit trail becomes worthless if nothing makes it tamper-evident.",
       "My bias is toward simple and direct. I'd rather write a lean HTTP handler than adopt a framework, and understand a problem than add a dependency. I use AI seriously as a tool — for research, prototyping and review — without handing over my understanding of what I've built.",
     ],
     skillsTitle: "What I work with",
     skills: [
       { name: "Languages", items: ["Go", "TypeScript", "JavaScript", "C", "C++", "Java", "SQL", "Bash"] },
-      { name: "Backend and real-time", items: ["REST", "WebSocket", "MQTT", "Webhooks", "Chi", "Microservices", "Multi-tenancy"] },
+      { name: "Backend and real-time", items: ["REST", "WebSocket", "SSE", "MQTT", "Webhooks", "Chi", "Microservices", "Multi-tenancy"] },
       { name: "Frontend", items: ["React 19", "Next.js", "Vite", "Tailwind", "Recharts", "Radix UI", "Leaflet", "htmx"] },
-      { name: "Data and storage", items: ["PostgreSQL", "PostGIS", "Redis", "Supabase", "MinIO / S3", "Goose", "pgx"] },
-      { name: "Infrastructure", items: ["Docker", "Kubernetes", "GitHub Actions", "Vercel", "Render", "MagaLU Cloud"] },
+      { name: "Data and storage", items: ["PostgreSQL", "PostGIS", "SQLite", "Redis", "Supabase", "S3 and Object Lock", "Goose", "pgx"] },
+      { name: "Infrastructure", items: ["Docker", "Kubernetes", "Caddy", "systemd", "GitHub Actions", "Vercel", "Render", "MagaLU Cloud"] },
       { name: "Operability", items: ["Prometheus", "OpenTelemetry", "Zerolog", "ADRs", "Retry and backoff"] },
       { name: "Hardware and vision", items: ["ESP32", "Raspberry Pi", "ADC sensors", "LPR / ANPR", "Facial recognition", "PTZ control"] },
     ],
@@ -172,8 +172,9 @@ export const en = {
 
   contact: {
     title: "Get in touch",
-    body: "The fastest way to reach me is email. I read everything and reply.",
+    body: "Email or WhatsApp, whichever you prefer. I read everything and reply.",
     emailLabel: "Email",
+    whatsappLabel: "WhatsApp",
     githubLabel: "GitHub",
     linkedinLabel: "LinkedIn",
     resumeLabel: "Download résumé",

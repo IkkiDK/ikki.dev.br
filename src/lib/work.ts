@@ -25,7 +25,7 @@ export const work: WorkEntry[] = [
     from: "2024",
     to: null,
     solo: true,
-    stack: ["Go", "PostgreSQL", "htmx", "PWA", "MinIO / S3", "Goose", "GitHub Actions", "MagaLU Cloud"],
+    stack: ["Go", "PostgreSQL", "htmx", "PWA", "S3 Object Lock (WORM)", "Ed25519", "Goose", "GitHub Actions", "MagaLU Cloud"],
     links: [],
     title: { en: "Xanadu Fleet", pt: "Xanadu Fleet" },
     tagline: {
@@ -33,17 +33,17 @@ export const work: WorkEntry[] = [
       pt: "Inspeções que sobrevivem sem sinal",
     },
     summary: {
-      en: "A fleet inspection and maintenance system for a transport company: versioned checklists filled in on the roadside with no connectivity, and an evidence chain that makes the records worth trusting.",
-      pt: "Um sistema de inspeção e manutenção de frota para uma transportadora: checklists versionados preenchidos na beira da estrada sem conexão, e uma cadeia de evidências que torna os registros confiáveis.",
+      en: "A fleet inspection, fueling and maintenance system for a transport company: versioned checklists filled in on the roadside with no connectivity, records that are superseded rather than edited, and a signed evidence chain anchored to write-once storage.",
+      pt: "Um sistema de inspeção, abastecimento e manutenção de frota para uma transportadora: checklists versionados preenchidos na beira da estrada sem conexão, registros que são substituídos em vez de editados, e uma cadeia de evidências assinada e ancorada em armazenamento write-once.",
     },
-    role: { en: "Sole author, around 130 commits", pt: "Autor único, cerca de 130 commits" },
+    role: { en: "Sole author, close to 300 commits", pt: "Autor único, perto de 300 commits" },
   },
   {
     slug: "metropolys",
     from: "2024",
     to: null,
     solo: false,
-    stack: ["Go", "PostgreSQL / PostGIS", "Redis", "MQTT", "WebSocket", "Kubernetes", "React 19", "Prometheus"],
+    stack: ["Go", "TypeScript", "React 19", "PostgreSQL / PostGIS", "Redis", "MQTT", "WebSocket", "Kubernetes", "Prometheus"],
     links: [],
     title: { en: "Smart-city platform", pt: "Plataforma de cidade inteligente" },
     tagline: {
@@ -51,13 +51,31 @@ export const work: WorkEntry[] = [
       pt: "As câmeras e sensores de uma cidade, num lugar só, em tempo real",
     },
     summary: {
-      en: "My day job at Metropolys. Go services that ingest plate recognition, facial detection, transit feeds, traffic and street-lighting telemetry, plus the React surfaces operators actually drive them from.",
-      pt: "Meu trabalho na Metropolys. Serviços em Go que recebem reconhecimento de placas, detecção facial, feeds de transporte, trânsito e telemetria de iluminação pública, mais as telas em React que os operadores de fato usam.",
+      en: "My day job at Metropolys. Go services that ingest plate reads, face matches, transit feeds, traffic and weather telemetry, and the parts of the web product where operators search a plate, follow a vehicle across the city and receive watchlist alerts.",
+      pt: "Meu trabalho na Metropolys. Serviços em Go que recebem leituras de placa, reconhecimentos faciais, feeds de transporte, trânsito e telemetria meteorológica, e as partes do produto web em que operadores pesquisam uma placa, seguem um veículo pela cidade e recebem alertas de listas de interesse.",
     },
     role: {
-      en: "Primary author of several services, contributor across the platform",
-      pt: "Autor principal de vários serviços, contribuidor na plataforma",
+      en: "Primary author of several services and of the plate and face alerting screens; contributor across the platform",
+      pt: "Autor principal de vários serviços e das telas de alertas de placa e face; contribuidor na plataforma",
     },
+  },
+  {
+    slug: "manutencao-lavoura",
+    from: "2026",
+    to: null,
+    solo: true,
+    stack: ["Go", "SQLite", "htmx", "PWA", "Caddy", "systemd", "GitHub Actions"],
+    links: [{ label: "lavoura.xanadutransportes.com.br", href: "https://lavoura.xanadutransportes.com.br" }],
+    title: { en: "Manutenção Lavoura", pt: "Manutenção Lavoura" },
+    tagline: {
+      en: "A maintenance logbook that fits in one binary",
+      pt: "Um diário de manutenção que cabe em um binário",
+    },
+    summary: {
+      en: "Farm-equipment maintenance for two people — an agronomist and a farm manager — recorded on a phone in the field, often without signal. One Go binary and one SQLite file on a small server, with an offline outbox and a photo queue that never hold a record back.",
+      pt: "Manutenção de máquinas agrícolas para duas pessoas — um agrônomo e um gerente de fazenda — registrada no celular, no campo, muitas vezes sem sinal. Um binário Go e um arquivo SQLite num servidor pequeno, com uma fila offline e uma fila de fotos que nunca seguram um registro.",
+    },
+    role: { en: "Sole author", pt: "Autor único" },
   },
   {
     slug: "mini-estufa",
@@ -83,9 +101,9 @@ export const work: WorkEntry[] = [
   {
     slug: "xanadu-site",
     from: "2025",
-    to: "2025",
+    to: "2026",
     solo: true,
-    stack: ["React 19", "Vite", "Framer Motion", "Tailwind", "Cloudinary", "Vercel"],
+    stack: ["Next.js 15", "React 19", "Framer Motion", "Cloudinary", "Google Analytics 4", "Vercel"],
     links: [{ label: "xanadutransportes.com.br", href: "https://xanadutransportes.com.br" }],
     title: { en: "Xanadu Transportes", pt: "Xanadu Transportes" },
     tagline: {
@@ -93,8 +111,8 @@ export const work: WorkEntry[] = [
       pt: "O primeiro site de uma transportadora",
     },
     summary: {
-      en: "A transport company whose customers found it by phone number alone. A single page that loads fast on a truck-stop connection and puts a WhatsApp conversation one tap away.",
-      pt: "Uma transportadora cujos clientes a encontravam só pelo telefone. Uma página única que carrega rápido numa conexão de posto de estrada e coloca uma conversa no WhatsApp a um toque.",
+      en: "A transport company whose customers found it by phone number alone. A single prerendered page that loads fast on a truck-stop connection, puts a WhatsApp conversation one tap away, and only loads analytics after the visitor consents.",
+      pt: "Uma transportadora cujos clientes a encontravam só pelo telefone. Uma página única pré-renderizada que carrega rápido numa conexão de posto de estrada, coloca uma conversa no WhatsApp a um toque e só carrega analytics depois que o visitante consente.",
     },
     role: { en: "Sole author", pt: "Autor único" },
   },

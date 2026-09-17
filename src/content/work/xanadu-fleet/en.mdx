@@ -6,12 +6,14 @@ Nobody could answer the only question that mattered: *what condition was this tr
 
 ## What the system does
 
-- Versioned digital checklists — 58 items for a truck, 19 for a machine — executed at hand-out and hand-back.
-- An offline-first PWA that field crews use to capture inspections and photos with no connectivity, syncing later.
-- A web admin built with `html/template` and htmx for assets, users, roles and reports.
-- Role-based access control across three roles: driver, supervisor, administrator.
-- A nonconformity workflow, so a failed item becomes something someone owns rather than a note nobody reads.
-- A cryptographic evidence chain that makes the records tamper-evident.
+- Versioned digital checklists — 58 items for a truck, 19 for a machine, trailers attached to the inspection — executed at hand-out and hand-back.
+- An offline-first PWA that field crews use to capture inspections, photos and fuelings with no connectivity, syncing later.
+- A web admin built with `html/template` and htmx: assets, users, reports, a manager’s cockpit, CSV exports.
+- Permission groups — driver, operator, manager, administrator — edited in the app, so extending what a group may do is a grant, not a deploy.
+- Corrections that supersede a record instead of editing it, and nonconformities that carry forward to the next trip.
+- A per-tenant hash chain, signed and anchored to write-once storage, so the records are evidence rather than opinion.
+
+Ten Architecture Decision Records document the choices below; three user manuals — driver, manager, administrator — document the result.
 
 ## Versioning the checklist came first
 
@@ -19,34 +21,65 @@ The first real decision had nothing to do with offline support. It was this: if 
 
 So checklist versions are immutable, and every inspection pins the exact version it was executed against. Adding an item creates a new version; historical records keep pointing at the old one and keep telling the truth. It costs a join and a little discipline in the admin UI, and it is the difference between a record and a guess.
 
-## Offline-first is really a conflict-resolution problem
+## A record is never edited, only superseded
 
-“Works offline” sounds like a storage feature. It isn’t. Storing an inspection locally is the easy half — the browser will happily hold it. The hard half is what happens when two people, two devices, and a stale cache all come back online with opinions about the same vehicle.
+An inspection is legal evidence, so it is immutable on submit — the database tables are append-only, with triggers that block `UPDATE` and `DELETE`. But drivers still make genuine mistakes: a wrong odometer reading, a mis-marked item. The correction path had to fix the data without touching the record.
 
-The design that made this tractable was to treat an inspection as an **append-only event**, not a mutable row. A crew member doesn’t edit the truck’s state; they record that at a given time, against a given checklist version, these items were in this condition. Two inspections of the same vehicle are never in conflict, because they are two different facts about two different moments. Sync becomes a matter of delivery and deduplication, not merging.
+A correction is a **new inspection that supersedes an earlier one**. It carries a reference to the record it replaces; the original is never modified and stays in history, marked as superseded. The detail pages link both ways. Only the newest record in a chain can be corrected, so there is always exactly one current answer.
 
-Photos sync separately from the inspection body, because a checklist with 58 items and a handful of photos is one small payload and several large ones, and they fail for different reasons on a truck-stop connection.
+The subtle part is that the supersession link itself is committed to the hash chain — but only when present. Records taken before corrections existed hash byte for byte as they always did and keep verifying. The link therefore cannot be re-pointed or hidden after the fact.
 
-## Making the records worth trusting
+## Offline-first, and what that actually meant here
 
-An audit trail that can be edited is decoration. If the point of the system is to answer a question months later, in front of someone who has money riding on the answer, then “the database says so” has to mean something.
+The mobile client is a PWA rather than a native app, and the reasoning was measured, not assumed: the driver fleet is standardised on Android, so the one real PWA weakness — iOS evicting unsynced storage — does not apply. A native app would have added a store account, a review cycle, and a second toolchain for a solo developer to maintain, to serve a fleet the PWA already served.
 
-Records are sealed into a write-once envelope with a cryptographic chain, so altering a past inspection breaks the chain and shows. It doesn’t make tampering impossible — nothing short of a third party does — but it makes tampering *evident*, which is what an audit trail is actually for.
+What offline-first cost in practice:
+
+- An IndexedDB **durable outbox** on the device, with persistent storage requested so the browser will not evict it.
+- A **framework-neutral REST sync API** — pull reference data, push inspections — so the client choice stays reversible without touching the server.
+- Ingest that tolerates the real world: records arriving out of order must not roll an asset’s odometer backwards, and an inspection whose clock is badly skewed is **quarantined** rather than trusted or dropped.
+- Photos ride a **separate channel**. The device presigns an upload, PUTs the bytes to object storage, then registers the photo against its record — and the server checks that the hash it declared matches what actually landed. A record is accepted before its photos arrive, so a checklist is never held hostage by a slow image.
+
+## Carrying a defect forward without lying about the photo
+
+When a driver starts an inspection, every item that failed on that truck’s previous inspection comes back pre-marked. For a defect that had a photo, the driver chooses: **keep** it, **update** the photo, or mark it **fixed**.
+
+“Keep” is the interesting one. The evidence rules forbid a stale photo standing in as if it were captured today, but forcing a re-shoot of an unchanged crack is a misleading kind of honesty. The resolution was to reuse the photo **by hash, with dated provenance**: the new result declares the same photo hash as the prior inspection plus the date it was originally captured, and that provenance is sealed into the hash chain. The driver sees the actual prior photo before choosing — fetched and cached during the last sync, so it works with no signal — and the server refuses any “carried from” claim that the chain did not already commit to for that asset. Nothing masquerades as today that was not re-affirmed today.
+
+## Evidence you can hand to a third party
+
+The hosting provider’s managed Postgres offered no continuous point-in-time recovery, and the inspection record is the legal tier. So the design treats object storage as the authoritative event log and Postgres as a rebuildable projection:
+
+| Layer | Mechanism |
+| --- | --- |
+| Tamper evidence | Per-tenant hash chain written at insert: `record_hash = sha256(canonical payload ‖ prev_hash ‖ seq)`, length-prefixed so field boundaries cannot collide, results sorted so the hash is independent of insertion order |
+| Immutability | Append-only tables enforced by triggers, not by convention |
+| Off-box copy | A background worker signs each record hash with an **Ed25519** key and writes it to a bucket with **Object Lock in compliance mode** — a retention not even the account owner can shorten |
+| Health signal | Anchor lag, `max(seq) − last anchored seq`; zero means every inspection has reached the immutable copy, and a growing lag is the backup alarm |
+| Checkpoints | A signed digest of the chain head once a day |
+| Independent audit | An `evidence-verify` tool that reads only the bucket and the published public key — **no database needed** — so an auditor or a court can check the log without trusting the server |
+
+The restore drill is a runbook, and it is run. An untested backup does not count.
+
+## Fueling, deliberately without a chain
+
+Forestry drivers fuel at the client’s mobile fuel truck and fill in the client’s paper requisition; the company kept no digital copy of its own. Fueling capture reuses the whole field machinery — offline, client-minted IDs, idempotent push, a mandatory photo of the receipt stub sealed into the record at capture — and records diesel and ARLA litres against the asset’s reading.
+
+It is append-only but **not** part of the hash chain, and that was a decision rather than an omission. The client holds the authoritative copy of every requisition; this record is reconciliation evidence, not the primary legal record, and chaining it would have been cost without a claim behind it. The ADR names the trigger for revisiting: if the fueling record ever becomes billing evidence, it gets its own chain.
+
+Suspicious fuelings are surfaced, never rejected. Litres that disagree with the pump, clock skew, an unassigned asset — all accepted and badged in the admin list, because a record that is refused in the field is a record that is lost.
 
 ## Running it in production
 
-This is the part solo projects usually skip, and the part I most wanted the practice in:
-
 | Concern | How it is handled |
 | --- | --- |
-| Schema changes | Goose migrations, versioned and checked in |
-| Regressions | Unit and integration tests on every push via GitHub Actions |
-| Slow or hostile uploads | Explicit timeouts on the upload path |
-| Deploys | Graceful shutdown, so in-flight inspections are not dropped |
-| Losing the database | `pg_dump` backups plus point-in-time recovery |
-| Forgetting why | Seven Architecture Decision Records |
-
-The ADRs turned out to matter more than I expected. Six months on, I could not reliably reconstruct why I chose one approach over another from the code alone — the code shows what won, never what lost.
+| Regressions | `go vet`, `go build` and `go test` on every push, against a fresh Postgres |
+| Schema changes | Goose migrations, versioned and checked in — past fifty by now |
+| Deploys | An on-demand workflow builds the image and installs it over SSH; nothing ships by accident |
+| Losing the database | Snapshots plus the signed off-box log above |
+| Personal data | CSV exports that carry driver names are rate-limited and audited |
+| Browser attack surface | A baseline Content-Security-Policy |
+| Forgetting why | Ten ADRs and three runbooks: deploy, disaster recovery, evidence anchoring |
 
 ## Why htmx, and not React
 
@@ -54,6 +87,6 @@ The admin is forms and tables. Every piece of state it cares about lives in Post
 
 `html/template` with htmx gives the admin partial updates without any of that. The client-side complexity goes where it is genuinely unavoidable: the offline PWA, which really does need to hold state, queue work and resolve it later.
 
-## What I would do differently
+## Where it is now
 
-Photo sync grew organically and I would design it deliberately now — a single resumable upload path with explicit backoff, rather than the retry logic I ended up with. I would also write the ADRs as I made the decisions instead of shortly after; the reasoning is sharpest before you have started defending it.
+Close to 300 commits. Since June the whole interface was rebuilt from a design prototype onto a single design-system stylesheet; the home page became a manager’s cockpit with fuel, division and drill-through reports; and the system began reconciling its own figures against the company’s ERP — result per branch, by joining freight documents to the ERP’s records — which is where a fleet system stops being a form and starts being an argument you can win.

@@ -9,22 +9,30 @@ O público abre isso no celular, com frequência numa conexão ruim — um posto
 Isso resolveu o design antes de qualquer decisão visual:
 
 - **Uma página só.** Navegação tem custo, e não havia conteúdo que a justificasse.
-- **WhatsApp como ação principal**, a um toque, em vez de um formulário que promete uma resposta.
+- **WhatsApp como a única ação**, a um toque, em vez de um formulário que promete uma resposta. Toda chamada para ação da página leva para lá.
 - **Um mapa**, porque “onde vocês ficam de verdade” é uma pergunta real de confiança no transporte rodoviário.
+
+## Pré-renderizado, e migrado para Next.js por isso
+
+A primeira versão saiu em Vite. Em junho o site foi reconstruído em Next.js 15 com o App Router, e o motivo foi o público acima: uma página totalmente pré-renderizada aparece numa conexão ruim antes de qualquer JavaScript chegar, e é o que os buscadores indexam. A maior parte das seções são server components; só o cabeçalho, o topo e a animação de revelação ao rolar são client components, porque são as únicas partes que precisam de um hook. As imagens locais passam pelo `next/image`.
 
 ## Manter o vídeo do topo fora do bundle
 
 A página abre com um vídeo. Commitar isso no repositório significaria trafegar megabytes pelo deploy da própria aplicação a cada push, e servir uma codificação fixa para todo aparelho, independentemente do que ele aguenta.
 
-Em vez disso, ele vive no Cloudinary, que cuida do transcode e da entrega. O deploy continua pequeno, e o celular na conexão ruim recebe algo adequado a ele.
+Em vez disso, ele vive no Cloudinary, entregue com formato e qualidade automáticos, e os celulares recebem um corte mais leve do vídeo do que os desktops. O deploy continua pequeno, e o celular na conexão ruim recebe algo adequado a ele.
 
 O Framer Motion cuida das seções animadas. Numa página institucional, esse é o único lugar em que o movimento se paga — é o que distingue uma empresa viva de um template abandonado.
+
+## Analytics só depois do consentimento
+
+A empresa queria saber se o site gerava conversas. O Google Analytics 4 é carregado **só depois que o visitante aceita o aviso de cookies**, como a LGPD exige, e os toques no WhatsApp são registrados como eventos — assim o único número que importa para o dono é medido sem rastrear ninguém que recusou. Uma página de política de privacidade explica o que é coletado.
 
 ## O problema dos deploys de preview
 
 Essa é a parte que vale anotar. A Vercel dá a cada push uma URL de preview em `*.vercel.app`, e essas URLs são publicamente acessíveis. Sem intervenção, os buscadores indexam essas páginas de bom grado, e a empresa acaba competindo com cópias duplicadas do próprio site em domínios que não são dela.
 
-A correção são redirects dos domínios de preview para o de produção e os headers de SEO corretos, de modo que exista exatamente um endereço canônico. Leva dez minutos e é invisível quando bem feito — que é exatamente por que normalmente não é feito.
+A correção é um redirecionamento permanente do domínio da Vercel para o domínio real — hoje ele responde com `308` — mais uma URL base canônica e metadados Open Graph, de modo que exista exatamente um endereço para o site. Leva dez minutos e é invisível quando bem feito, que é exatamente por que normalmente não é feito.
 
 ## Honestidade sobre o escopo
 

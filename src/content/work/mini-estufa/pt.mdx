@@ -39,7 +39,7 @@ A API em Go tem uma superfície deliberadamente pequena:
 | `GET /ws` | Transmissão ao vivo para os dashboards conectados |
 | `GET /health` | O serviço está de pé |
 
-`/api/sensor/latest` existe por causa de uma falha real: um dashboard que abre entre dois broadcasts não tem o que desenhar e mostra um gráfico vazio até a próxima leitura chegar. Um stream ao vivo precisa de um jeito de responder “o que é verdade agora” para quem acabou de chegar.
+`/api/sensor/latest` existe por um único motivo: um dashboard que abre entre dois broadcasts não tem o que desenhar e mostraria um gráfico vazio até a próxima leitura chegar. Um stream ao vivo precisa de um jeito de responder “o que é verdade agora” para quem acabou de chegar.
 
 ## WebSocket, não polling
 

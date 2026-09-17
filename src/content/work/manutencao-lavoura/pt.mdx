@@ -1,0 +1,50 @@
+## Para quem é
+
+Duas pessoas. Um agrônomo e um gerente de fazenda, que entre os dois cuidam de um trator, uma colheitadeira, uma plantadeira, uma semeadora, um pulverizador e um caminhão, e que precisavam saber o que foi feito, quando, e com qual leitura no horímetro ou no hodômetro.
+
+Esse é o público inteiro, e o desenho leva isso a sério. Não há tela de cadastro; as duas contas são criadas pela linha de comando. Não há sistema de papéis; há duas pessoas que confiam uma na outra.
+
+## Uma visita, vários serviços
+
+Uma visita de manutenção raramente faz uma coisa só. Troca-se o óleo, um filtro junto, e um bico enquanto a máquina já está aberta. Então um registro lista quantos serviços forem necessários, cada um com preço, quantidade e um “fazer de novo depois de *N* horas ou quilômetros” — e a tela de gastos soma o que cada máquina custou num período, ou detalha uma máquina por serviço.
+
+O que torna os totais confiáveis é pequeno: os serviços são agrupados por um nome que ignora maiúsculas, acentos e espaçamento, então *Troca de Óleo* e *troca de oleo* viram uma linha, e não duas. O campo de descrição sugere os nomes já em uso, que é o que impede o resto de se desalinhar desde o início.
+
+## Offline exatamente onde importa
+
+Só uma página funciona offline: o formulário de novo registro. Ele fica em cache no service worker, e um registro salvo sem sinal espera numa fila no aparelho e sobe sozinho quando a conexão volta. Navegar e editar são só online, por decisão.
+
+Essa divisão é o ponto. O momento que precisa de offline é estar ao lado de uma máquina no meio da lavoura; todo o resto acontece numa mesa. Fazer a aplicação inteira funcionar offline compraria muita complexidade de sincronização para um caso que não existe.
+
+## Fotos nunca seguram um registro
+
+Um registro pode carregar fotos — a nota fiscal do que foi comprado, ou o serviço em si. Cada uma é redimensionada e recodificada no celular antes de ser guardada ou enviada, espera na própria fila e sobe logo depois do seu registro. O registro vai primeiro; as fotos vão atrás. Um registro nunca fica esperando pelas fotos.
+
+Os bytes ficam no mesmo arquivo SQLite que todo o resto, então o único backup cobre as fotos também.
+
+## Apps que se atualizam sozinhos
+
+Um PWA instalado tem uma falha clássica: a versão em cache sobrevive ao deploy, e dois celulares passam a rodar, em silêncio, duas aplicações diferentes. A resposta de sempre é um número de versão do cache que alguém precisa lembrar de incrementar.
+
+Aqui o cache do service worker recebe o nome de um **hash dos arquivos que ele guarda** — os assets estáticos e os templates que renderizam o formulário offline. Um build que mude qualquer um deles muda o script do worker; o navegador vê um worker novo, instala, reabastece o cache e recarrega a página aberta. Um formulário com texto digitado segura esse reload até que a página seja deixada, para que nada escrito pela metade se perca. Não há versão para incrementar à mão, e uma mudança só em Go deixa o cache em paz.
+
+## Um binário, um arquivo
+
+A implantação é, de propósito, a menor coisa que ainda está certa:
+
+| Peça | Escolha |
+| --- | --- |
+| Runtime | Um binário Go estático, `CGO_ENABLED=0`, com um driver SQLite em Go puro — nada para instalar no servidor |
+| Dados | Um arquivo SQLite, fotos incluídas |
+| Processo | `systemd` |
+| TLS e ingresso | Caddy no host, fora do compose de qualquer projeto, para que o redeploy de um projeto nunca derrube a entrada de outro |
+| Migrações | Rodam na inicialização, cada uma dentro de uma transação; uma falha deixa o banco como estava e o serviço se recusa a subir em vez de servir metade de um schema |
+| Releases | Um workflow no GitHub Actions que reexecuta os testes, compila para o servidor, tira um snapshot do banco e então instala e reinicia por SSH |
+
+Ele precisa de uma origem própria, e não de um caminho dentro de um site existente, e o README diz por quê: o escopo do service worker é `/`, o cookie de sessão é por host, e um service worker simplesmente não registra sobre HTTP puro — sem TLS, o formulário offline, a fila e a autoatualização estão todos mortos.
+
+Mais um detalhe do runbook fácil de deixar passar: no iOS, o app precisa ser adicionado à tela de início. Uma aba comum do Safari tem o armazenamento apagado depois de cerca de uma semana parada, o que descartaria em silêncio um registro ainda esperando na fila.
+
+## Honestidade sobre o escopo
+
+Vinte e três commits em cinco semanas, e o irmão menor do Xanadu Fleet. Reaproveita as mesmas ideias — uma fila de saída, uma fila separada de fotos, registros que vão primeiro — com um décimo da maquinaria, porque duas pessoas anotando trocas de óleo não precisam de uma cadeia de hashes. Saber qual projeto precisa do quê é a maior parte do trabalho.

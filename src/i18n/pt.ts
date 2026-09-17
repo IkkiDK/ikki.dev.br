@@ -26,7 +26,7 @@ export const pt: Dictionary = {
     name: "Henrique Kasprzak",
     headline: "Construo sistemas que leem o mundo físico e mantêm os dados íntegros.",
     intro:
-      "Desenvolvedor full-stack em Curitiba — Go no backend, React no front. Na Metropolys escrevo os serviços por trás de uma plataforma de cidade inteligente: reconhecimento de placas, controle de câmeras e telemetria chegando de sensores espalhados pela cidade. Fora do trabalho, construo sistemas completos sozinho, de ponta a ponta.",
+      "Desenvolvedor full-stack em Curitiba — Go no backend, React no front. Na Metropolys escrevo os serviços por trás de uma plataforma de cidade inteligente: reconhecimento de placas e faces, controle de câmeras, telemetria de sensores espalhados pela cidade e as telas de onde os operadores acompanham tudo isso. Fora do trabalho, construo sistemas completos sozinho, de ponta a ponta.",
     availability: "Aberto a vagas de backend e full-stack, remoto ou em Curitiba.",
     emailCta: "Entrar em contato",
     workCta: "Ler os estudos de caso",
@@ -72,7 +72,7 @@ export const pt: Dictionary = {
       {
         key: "dedupe",
         label: "Deduplicado",
-        note: "Um fingerprint SHA-256 descarta quadros repetidos do mesmo carro na mesma passagem.",
+        note: "Cada evento recebe um fingerprint SHA-256 determinístico, então a mesma leitura entregue duas vezes — um webhook reenviado, um segundo caminho de ingestão — é gravada uma vez só.",
         payload: `{
   "plate": "RJK4C19",
   "image": "anpr/2026/09/17/RJK4C19-1342.jpg",
@@ -126,7 +126,7 @@ export const pt: Dictionary = {
   work: {
     title: "Projetos selecionados",
     intro:
-      "Quatro sistemas, descritos como eu explicaria para outra pessoa da engenharia: qual era o problema de verdade, o que escolhi e quanto custou.",
+      "Cinco sistemas, descritos como eu explicaria para outra pessoa da engenharia: qual era o problema de verdade, o que escolhi e quanto custou.",
     read: "Ler o estudo de caso",
     present: "hoje",
     roleLabel: "Papel",
@@ -139,18 +139,18 @@ export const pt: Dictionary = {
     title: "Sobre",
     lede: "Engenheiro de computação, backend por instinto, entregando coisas que rodam em produção.",
     body: [
-      "Estou terminando Engenharia de Computação na Universidade Positivo enquanto trabalho como desenvolvedor na Metropolys, em uma plataforma que reúne os dados de uma cidade em tempo real. A maior parte do que escrevo é Go: integrações por webhook para reconhecimento de placas e detecção facial, um serviço de controle de câmeras PTZ, feeds de transporte público e trânsito, e telemetria de sensores e iluminação pública sobre MQTT. Também construí o serviço de KPIs que transforma tudo isso em indicadores comparáveis entre cidades, e os simuladores que permitem testar o pipeline inteiro sem uma única câmera física.",
-      "Quando algo precisa de front-end, eu construo também — um overlay em React para controlar câmeras PTZ sobre o vídeo ao vivo, e um mosaico de câmeras com blocos arrastáveis e mapa para o painel de operações.",
+      "Estou terminando Engenharia de Computação na Universidade Positivo enquanto trabalho como desenvolvedor na Metropolys, em uma plataforma que reúne os dados de uma cidade em tempo real. A maior parte do que escrevo é Go: serviços de ingestão de leituras de placa e reconhecimentos faciais vindos de plataformas de câmeras, com alertas de listas de interesse para os dois; um serviço de controle de câmeras PTZ; feeds de transporte público, trânsito e clima; e telemetria de sensores e iluminação pública sobre MQTT. Também construí o serviço de KPIs que transforma tudo isso em indicadores comparáveis entre cidades, e os simuladores que permitem testar o pipeline inteiro sem uma única câmera física.",
+      "Quando algo precisa de front-end, eu construo também — um overlay em React para controlar câmeras PTZ sobre o vídeo ao vivo, um mosaico de câmeras com blocos arrastáveis e mapa para o painel de operações, e as telas do produto em que um operador pesquisa uma placa, segue um veículo pela cidade e gerencia as listas que disparam alertas.",
       "Fora do trabalho construo sistemas completos sozinho, e foi aí que mais aprendi: para que serve uma estratégia de migrações, por que um app offline-first é sobretudo um problema de resolução de conflitos, e com que rapidez uma trilha de auditoria perde o valor se nada a torna à prova de adulteração.",
       "Minha tendência é buscar o simples e direto. Prefiro escrever um handler HTTP enxuto a adotar um framework, e entender um problema a acrescentar uma dependência. Uso IA a sério como ferramenta — pesquisa, protótipo e revisão — sem abrir mão de entender o que construí.",
     ],
     skillsTitle: "Com o que eu trabalho",
     skills: [
       { name: "Linguagens", items: ["Go", "TypeScript", "JavaScript", "C", "C++", "Java", "SQL", "Bash"] },
-      { name: "Backend e tempo real", items: ["REST", "WebSocket", "MQTT", "Webhooks", "Chi", "Microsserviços", "Multi-tenancy"] },
+      { name: "Backend e tempo real", items: ["REST", "WebSocket", "SSE", "MQTT", "Webhooks", "Chi", "Microsserviços", "Multi-tenancy"] },
       { name: "Frontend", items: ["React 19", "Next.js", "Vite", "Tailwind", "Recharts", "Radix UI", "Leaflet", "htmx"] },
-      { name: "Dados e armazenamento", items: ["PostgreSQL", "PostGIS", "Redis", "Supabase", "MinIO / S3", "Goose", "pgx"] },
-      { name: "Infraestrutura", items: ["Docker", "Kubernetes", "GitHub Actions", "Vercel", "Render", "MagaLU Cloud"] },
+      { name: "Dados e armazenamento", items: ["PostgreSQL", "PostGIS", "SQLite", "Redis", "Supabase", "S3 e Object Lock", "Goose", "pgx"] },
+      { name: "Infraestrutura", items: ["Docker", "Kubernetes", "Caddy", "systemd", "GitHub Actions", "Vercel", "Render", "MagaLU Cloud"] },
       { name: "Operação", items: ["Prometheus", "OpenTelemetry", "Zerolog", "ADRs", "Retry e backoff"] },
       { name: "Hardware e visão", items: ["ESP32", "Raspberry Pi", "Sensores ADC", "LPR / ANPR", "Reconhecimento facial", "Controle PTZ"] },
     ],
@@ -174,8 +174,9 @@ export const pt: Dictionary = {
 
   contact: {
     title: "Entrar em contato",
-    body: "O jeito mais rápido de me encontrar é por e-mail. Eu leio tudo e respondo.",
+    body: "E-mail ou WhatsApp, como preferir. Eu leio tudo e respondo.",
     emailLabel: "E-mail",
+    whatsappLabel: "WhatsApp",
     githubLabel: "GitHub",
     linkedinLabel: "LinkedIn",
     resumeLabel: "Baixar currículo",

@@ -9,22 +9,30 @@ The audience opens this on a phone, frequently on a poor connection — a truck 
 That settled the design before any of the visual decisions:
 
 - **One page.** Navigation is a cost, and there was not enough content to justify it.
-- **WhatsApp as the primary action**, one tap away, rather than a form that promises a reply.
+- **WhatsApp as the only action**, one tap away, rather than a form that promises a reply. Every call to action on the page goes there.
 - **A map**, because “where are you actually based” is a real trust question in haulage.
+
+## Prerendered, and moved to Next.js for it
+
+The first version shipped on Vite. In June it was rebuilt on Next.js 15 with the App Router, and the reason was the audience above: a fully prerendered page paints on a bad connection before any JavaScript arrives, and it is what search engines index. Most sections are server components; only the header, the hero and the scroll-reveal animation are client components, because they are the only parts that need a hook. Local images go through `next/image`.
 
 ## Keeping the hero video out of the bundle
 
 The page opens on a video. Committing that to the repository would mean shipping megabytes through the application’s own deploy on every push, and serving one fixed encoding to every device regardless of what it can handle.
 
-It lives on Cloudinary instead, which does the transcoding and delivery. The deploy stays small, and the phone on the bad connection gets something appropriate to it.
+It lives on Cloudinary instead, delivered with automatic format and quality, and phones get a lighter cut of the video than desktops. The deploy stays small, and the phone on the bad connection gets something appropriate to it.
 
 Framer Motion handles the animated sections. On a marketing page this is the one place where motion is earning its keep — it is the only thing distinguishing a live company from an abandoned template.
+
+## Analytics only after consent
+
+The company wanted to know whether the site produced conversations. Google Analytics 4 is loaded **only after the visitor accepts the cookie banner**, as Brazil’s LGPD requires, and WhatsApp taps are recorded as events — so the one number the owner cares about is measured without tracking anyone who declined. A privacy-policy page explains what is collected.
 
 ## The preview-deployment problem
 
 This is the part worth writing down. Vercel gives every push a preview URL on `*.vercel.app`, and those URLs are publicly reachable. Left alone, search engines will happily index them, and the company ends up competing with duplicate copies of its own site on domains it does not own.
 
-The fix is redirects from the preview domains to production and the right SEO headers, so there is exactly one canonical address. It takes ten minutes and it is invisible when done — which is precisely why it usually is not.
+The fix is a permanent redirect from the Vercel domain to the real one — it answers with a `308` today — plus a canonical base URL and Open Graph metadata, so there is exactly one address for the site. It takes ten minutes and it is invisible when done, which is precisely why it usually is not.
 
 ## Honest about the scope
 

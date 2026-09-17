@@ -11,6 +11,11 @@ export const site = {
   githubHandle: "IkkiDK",
   linkedin: "https://www.linkedin.com/in/henrique-kasprzak",
   linkedinHandle: "henrique-kasprzak",
+  whatsapp: {
+    /** E.164 without the plus, as wa.me expects it. */
+    number: "5542999405868",
+    display: "+55 42 99940-5868",
+  },
   repo: "https://github.com/IkkiDK/ikki.dev.br",
   resume: {
     en: "/henrique-kasprzak-resume.pdf",

@@ -1,0 +1,50 @@
+## Who it is for
+
+Two people. An agronomist and a farm manager, who between them look after a tractor, a combine, a planter, a seeder, a sprayer and a truck, and who needed to know what was serviced, when, and at which meter reading — hours for the machines, kilometres for the truck.
+
+That is the whole audience, and the design takes it seriously. There is no signup screen; the two accounts are created from the command line. There is no role system; there are two people who trust each other.
+
+## One visit, many services
+
+A maintenance visit rarely does one thing. The oil gets changed, a filter with it, and a nozzle while the machine is already open. So a record lists as many services as it took, each with its own price, quantity and a “do it again after *N* hours or kilometres” — and a spending view then totals what each machine has cost over a period, or breaks one machine down by service.
+
+The thing that makes the totals trustworthy is small: services are grouped by a name that ignores case, accents and spacing, so *Troca de Óleo* and *troca de oleo* are one line rather than two. The description field suggests names already in use, which is what keeps the rest from drifting apart in the first place.
+
+## Offline exactly where it matters
+
+Only one page works offline: the new-record form. It is cached by the service worker, and a record saved without signal waits in an on-device outbox and uploads on its own when the connection returns. Browsing and editing are online-only, by design.
+
+That split is the point. The moment that needs offline is standing next to a machine in a field; everything else happens at a desk. Making the whole application work offline would have bought a great deal of synchronisation complexity for a case that does not exist.
+
+## Photos never hold a record back
+
+A record can carry photos — the invoice for what was bought, or the job itself. Each one is resized and re-encoded on the phone before it is stored or sent, waits in its own queue, and uploads right after its record. The record goes first; the photos follow. A record is never held back by its photos.
+
+The bytes live in the same SQLite file as everything else, so the one backup covers them too.
+
+## Apps that update themselves
+
+An installed PWA has a classic failure: the cached version outlives the deploy, and two phones quietly run two different applications. The usual answer is a cache version number somebody must remember to bump.
+
+Here the service worker’s cache is named after a **hash of the files it caches** — the static assets and the templates that render the offline form. A build that changes any of them changes the worker script; the browser sees a new worker, installs it, refills the cache and reloads the open page. A form with typed input holds that reload back until the page is left, so nothing half-written is lost. There is no version to bump by hand, and a Go-only change leaves the cache alone.
+
+## One binary, one file
+
+The deployment is deliberately the smallest thing that is still correct:
+
+| Piece | Choice |
+| --- | --- |
+| Runtime | One static Go binary, `CGO_ENABLED=0`, with a pure-Go SQLite driver — nothing to install on the server |
+| Data | One SQLite file, photos included |
+| Process | `systemd` |
+| TLS and ingress | Caddy on the host, not inside any project’s compose file, so one project’s redeploy can never take another’s ingress down |
+| Migrations | Run at startup, each inside a transaction; a failure leaves the database as it was and the service refuses to come up rather than serve half a schema |
+| Releases | A GitHub Actions workflow that re-runs the tests, cross-compiles, snapshots the database, then installs and restarts over SSH |
+
+It needs an origin of its own rather than a path under an existing site, and the README says why: the service worker’s scope is `/`, the session cookie is host-scoped, and a service worker will not register over plain HTTP at all — without TLS the offline form, the outbox and the self-update are all dead.
+
+One more detail from the runbook that is easy to miss: on iOS, the app must be added to the home screen. A plain Safari tab has its storage purged after about a week idle, which would silently drop a record still waiting in the outbox.
+
+## Honest about the scope
+
+Twenty-three commits over five weeks, and the smaller sibling of Xanadu Fleet. It reuses the same ideas — an outbox, a separate photo queue, records that go first — at a tenth of the machinery, because two people logging oil changes do not need a hash chain. Knowing which project needs which is most of the job.

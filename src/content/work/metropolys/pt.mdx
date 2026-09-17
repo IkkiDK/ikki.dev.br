@@ -1,6 +1,6 @@
 ## O formato do problema
 
-Uma cidade já produz os dados de que um centro de operações precisa. O problema é onde eles ficam: câmeras de leitura de placa em postes, controladores de semáforo, veículos de transporte reportando posição, iluminação pública, estações meteorológicas, sensores IoT. Nenhum deles foi feito para conversar com os outros, a maioria fala um protocolo diferente e vários pertencem a fornecedores que nunca vão mudar nada por você.
+Uma cidade já produz os dados de que um centro de operações precisa. O problema é onde eles ficam: câmeras de leitura de placa em postes, câmeras de reconhecimento facial, controladores de semáforo, veículos de transporte reportando posição, iluminação pública, estações meteorológicas, sensores IoT. Nenhum deles foi feito para conversar com os outros, a maioria fala um protocolo diferente e vários pertencem a fornecedores que nunca vão mudar nada por você.
 
 O trabalho da plataforma é transformar tudo isso em uma imagem só, em tempo real, para operadores que precisam agir em segundos.
 
@@ -10,23 +10,42 @@ O trabalho da plataforma é transformar tudo isso em uma imagem só, em tempo re
 
 Sou autor principal de vários serviços e contribuidor na plataforma como um todo:
 
-- A **integração por webhook de reconhecimento de placas (LPR/ANPR)** — o caminho descrito na página inicial.
+- **Ingestão de reconhecimento de placas para duas plataformas de câmeras.** A primeira é o serviço de webhook traçado na página inicial. A segunda, deste ano, é um ingestor híbrido de push e polling que também recebe **reconhecimentos faciais**, e virou o serviço facial da plataforma quando os dois foram fundidos.
+- **Alertas de listas de interesse para placas e faces**, do alarme da câmera até a tela do operador.
 - O **serviço de controle de câmeras PTZ** e o overlay em React 19 de onde os operadores o comandam.
-- O **serviço de agregação de KPIs**, que transforma dados de trânsito, clima e infraestrutura em indicadores padronizados e multi-tenant.
+- O **serviço de agregação de KPIs**, que transforma dados de trânsito, clima e infraestrutura em indicadores padronizados e multi-tenant, mais indicadores de chuva a partir da telemetria de estações meteorológicas.
 - Um conjunto de **simuladores de telemetria urbana** em Go.
-- O **mosaico de câmeras** do painel de operações.
+- No produto em si: o **mosaico de câmeras** e as telas em que um operador pesquisa uma placa, segue um veículo pela cidade e gerencia as listas que disparam alertas.
 
-Também contribuí para os serviços de integração de transporte público em tempo real, telemetria de sensores IoT e iluminação pública sobre MQTT.
+Também contribuí para os serviços de integração de transporte público em tempo real, telemetria de sensores IoT e iluminação pública sobre MQTT, e as fontes de câmera do gateway de vídeo.
 
-## A deduplicação é o que torna os alertas utilizáveis
+## A deduplicação é o que torna os dados utilizáveis
 
-Uma câmera que observa uma faixa não vê o carro uma vez. Vê em uma dezena de quadros conforme ele se aproxima, e cada um deles pode chegar como um webhook próprio. Sem nada no caminho, um veículo passando por uma câmera gera uma parede de alertas idênticos, e o operador aprende a ignorar o painel de alertas — o que destrói o sistema inteiro.
+Uma leitura de placa chega à plataforma mais de uma vez por motivos banais — um webhook é reenviado, ou dois caminhos de ingestão veem a mesma passagem. Sem nada no caminho, cada duplicata vira uma passagem duplicada no mapa e, cedo ou tarde, um alerta duplicado, e o operador aprende a desconfiar da tela.
 
-Cada evento recebe um fingerprint SHA-256 sobre os campos que identificam a *passagem*, e não o *quadro*. As repetições colapsam. O operador vê um veículo, uma vez.
+Então cada evento recebe um **fingerprint determinístico** da sua identidade: um SHA-256 sobre os próprios campos do evento no primeiro serviço, um hash do id de registro da plataforma de câmeras no segundo. Mesmo evento, mesma chave, gravado uma vez.
 
-O resto do serviço é o caminho de enriquecimento: baixar o recorte da placa da câmera, gravá-lo no storage, extrair os metadados do veículo, cruzar a placa com as listas de restrição e disparar o alerta na prioridade da lista de maior peso que deu match. Um veículo roubado e um pedágio em aberto não são o mesmo alerta, e essa ordenação é o produto.
+O segundo serviço se apoia mais nisso. Ele ingere por dois caminhos de propósito — uma assinatura de push registrada na plataforma de câmeras e um poller que preenche lacunas a partir do histórico da própria plataforma —, para que nenhum dos dois seja ponto único de falha. Como ambos produzem a mesma chave, um registro que chega pelos dois continua sendo um registro só; e o poller confere em lote o que já está gravado antes de baixar uma única imagem. A coisa toda roda como **uma réplica só, por decisão**: o estado de deduplicação fica em processo e a assinatura de push é registrada uma vez, então uma segunda réplica ingeriria tudo em dobro — e o deploy diz isso explicitamente.
 
-Tudo é exposto como métricas Prometheus, porque um serviço de integração silencioso é indistinguível de um serviço funcionando — até alguém perguntar por que os alertas pararam.
+## O alerta é o produto
+
+Uma placa em uma lista monitorada, ou um rosto que bate com uma biblioteca de procurados, cai em um fluxo de alertas dedicado, e não no feed comum de passagens. Cada restrição é mapeada para uma **prioridade**, e a prioridade é o que o operador vê primeiro: um veículo roubado e um pedágio em aberto não são o mesmo alerta.
+
+Um detalhe da plataforma mais nova vale registrar. O alarme de veículo dela não carrega imagem; a passagem que carrega só chega ao histórico da plataforma **14 a 22 segundos** depois, medidos. Uma única consulta no momento do push quase nunca encontra nada, então o handler de alerta espera e tenta de novo para anexar o snapshot antes de ingerir. O fluxo de alertas tem dezenas de registros por mês, e segurar um worker de webhook por vinte segundos não custa nada — assim o único registro do alarme chega com a sua imagem.
+
+## Memória é orçamento
+
+Ingerir imagens em paralelo é rápido até o pod ser morto por usar memória demais, que foi como correu o primeiro deploy em produção do serviço mais novo. A correção não foi mais memória, e sim **concorrência limitada** no caminho das imagens — o suficiente para esvaziar a fila, pouco o bastante para ficar abaixo do limite —, com o cursor do poller retomado a partir do datasource no reinício, para que uma queda nunca releia o mundo inteiro, e uma sonda de readiness derivada do intervalo de polling, para que o cluster saiba quando o serviço está de fato vivo.
+
+A plataforma de câmeras também não expõe GPS. A tabela de coordenadas por câmera, levantada à mão, funciona também como **lista de permissão da ingestão**: uma câmera ausente dela é ignorada em silêncio, que é o padrão seguro quando um hardware novo aparece na plataforma antes de alguém decidir o que ele é.
+
+## A tela do operador
+
+Do lado do produto, o trabalho com placas virou um conjunto de telas: pesquisar uma placa e ver todas as passagens; um **mapa de rastro** com visualizador de passagens; uma visão de proximidade ancorada numa passagem escolhida, para “o que mais estava perto deste carro”; placas monitoradas organizadas em grupos **por prioridade de alerta**, em cartões ou em tabela. O mesmo formato foi então aplicado a faces: uma aba de alertas, um fluxo de cadastro e categorias que carregam uma prioridade na **mesma escala das placas**, para que o operador classifique pessoas e veículos com um vocabulário só. Um teste fixa o fuso horário do produto, porque uma tela baseada em tempo que lê o fuso errado em silêncio está errada de um jeito que parece certo.
+
+## Faces, com escopo
+
+A integração facial é multi-tenant, e a regra que moldou a minha parte dela é **falhar fechado**: uma busca roda como a conta de quem chamou, dentro do próprio escopo; uma câmera não resolvida ou um cartão de outro tenant é descartado antes de ser usado; e uma foto não pode ser anexada a um cartão para o qual quem chamou não tinha autorização. Os alertas ao vivo chegam ao navegador por server-sent events, e o serviço para de transmitir para um navegador que já foi embora.
 
 ## Controle PTZ é um problema de latência vestido de interface
 
@@ -51,7 +70,7 @@ Escrever os modos de falha foi a parte que mais compensou. Sistemas que só veem
 
 ## Indicadores que sobrevivem à comparação
 
-Cada cidade se mede de um jeito um pouco diferente, e uma plataforma que atende várias não pode deixar isso vazar para o painel. O serviço de KPIs combina dados de trânsito, clima e infraestrutura urbana em indicadores que significam a mesma coisa em cada tenant — o que é sobretudo um problema de normalização e de definições, e só incidentalmente um problema de código.
+Cada cidade se mede de um jeito um pouco diferente, e uma plataforma que atende várias não pode deixar isso vazar para o painel. O serviço de KPIs combina dados de trânsito, clima e infraestrutura urbana em indicadores que significam a mesma coisa em cada tenant — o que é sobretudo um problema de normalização e de definições, e só incidentalmente um problema de código. Os indicadores de chuva são o exemplo pequeno: totais móveis de seis e doze horas construídos a partir do histórico do sensor de cada estação, e não do que a estação reportou por último.
 
 ## O mosaico
 

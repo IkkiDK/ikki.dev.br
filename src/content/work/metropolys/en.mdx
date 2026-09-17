@@ -1,6 +1,6 @@
 ## The shape of the problem
 
-A city already produces the data an operations centre needs. The trouble is where it lives: plate-reading cameras on poles, traffic controllers, transit vehicles reporting position, streetlights, weather stations, IoT sensors. None of them were built to talk to each other, most speak a different protocol, and several belong to vendors who will never change anything for you.
+A city already produces the data an operations centre needs. The trouble is where it lives: plate-reading cameras on poles, face-recognition cameras, traffic controllers, transit vehicles reporting position, streetlights, weather stations, IoT sensors. None of them were built to talk to each other, most speak a different protocol, and several belong to vendors who will never change anything for you.
 
 The platform’s job is to turn all of that into one picture, in real time, for operators who need to act on it within seconds.
 
@@ -10,23 +10,42 @@ The platform’s job is to turn all of that into one picture, in real time, for 
 
 I am the primary author of several services and a contributor across the platform:
 
-- The **plate recognition (LPR/ANPR) webhook integration** — the path described on the home page.
+- **Plate-recognition ingestion for two camera platforms.** The first is the webhook service traced on the home page. The second, from this year, is a hybrid push-and-poll ingester that also takes in **face matches**, and became the platform’s facial service when the two were merged.
+- **Watchlist alerting for plates and faces**, from the camera’s alarm to the operator’s screen.
 - The **PTZ camera control service** and the React 19 overlay operators drive it from.
-- The **KPI aggregation service**, which turns traffic, weather and infrastructure data into standardised, multi-tenant indicators.
+- The **KPI aggregation service**, which turns traffic, weather and infrastructure data into standardised, multi-tenant indicators, plus rainfall indicators from weather-station telemetry.
 - A set of **urban telemetry simulators** in Go.
-- The **camera mosaic** in the operations dashboard.
+- In the product itself: the **camera mosaic**, and the screens where an operator searches a plate, follows a vehicle across the city and manages the lists that raise alerts.
 
-I also contributed to the integration services for real-time public transit, IoT sensor telemetry, and public lighting over MQTT.
+I also contributed to the integration services for real-time public transit, IoT sensor and public-lighting telemetry over MQTT, and the video gateway’s camera sources.
 
-## Deduplication is what makes alerts usable
+## Deduplication is what makes the data usable
 
-A camera watching a lane does not see a car once. It sees it in a dozen frames as it approaches, and each of those can arrive as its own webhook. Without something in the way, one vehicle passing one camera produces a wall of identical alerts, and the operator learns to ignore the alert panel — which defeats the entire system.
+A plate read reaches the platform more than once for mundane reasons — a webhook is retried, or two ingestion paths see the same passage. Without something in the way, every duplicate becomes a duplicate passage on the map and, eventually, a duplicate alert, and the operator learns to distrust the screen.
 
-Each event gets a SHA-256 fingerprint over the fields that identify the *passage* rather than the *frame*. Repeats collapse. The operator sees one vehicle, once.
+So every event gets a **deterministic fingerprint** of its identity: a SHA-256 over the event’s own fields in the first service, a hash of the camera platform’s record id in the second. Same event, same key, stored once.
 
-The rest of the service is the enrichment path: pull the plate crop from the camera, push it to storage, extract vehicle metadata, check the plate against restriction lists, and raise an alert at the priority of the highest-ranking list it matched. A stolen vehicle and an unpaid toll are not the same alert, and the ordering is the product.
+The second service leans on that harder. It ingests over two paths on purpose — a push subscription registered with the camera platform, and a gap-filling poller over the platform’s own history — so neither is a single point of failure. Because both paths produce the same key, a record arriving by both is still one record; and the poller batch-checks what is already stored before it downloads a single image. The whole thing runs as **one replica by design**: the dedup state is in-process and the push subscription is registered once, so a second replica would double-ingest, and the deployment says so.
 
-Everything is exposed as Prometheus metrics, because a silent integration service is indistinguishable from a working one until someone asks why the alerts stopped.
+## The alert is the product
+
+A plate on a monitored list, or a face matching a wanted library, lands on a dedicated alert stream rather than in the ordinary passage feed. Each restriction maps to a **priority**, and the priority is what the operator sees first: a stolen vehicle and an unpaid toll are not the same alert.
+
+One detail of the newer platform is worth writing down. Its vehicle alarm carries no picture; the passage that does carry one only reaches the platform’s history a measured **14–22 seconds** later. A single lookup at push time therefore almost always finds nothing, so the alert handler waits and retries to attach the snapshot before it ingests. The alert stream is tens of records a month, and holding a webhook worker for twenty seconds costs nothing — so the alarm’s one record gets its image.
+
+## Memory is a budget
+
+Ingesting images concurrently is fast until the pod is killed for using too much memory, which is how the first production deployment of the newer service went. The fix was not more memory but **bounded concurrency** on the image path — enough to drain the queue, few enough to stay under the limit — with the poller’s cursor resumed from the datasource on restart so a crash never re-reads the world, and a readiness probe derived from the poll interval so the cluster knows when the service is actually alive.
+
+The camera platform also exposes no GPS. The per-camera coordinate table, surveyed by hand, doubles as the **ingest allowlist**: a camera missing from it is silently skipped, which is the safe default when new hardware appears on the platform before anyone has decided what it is.
+
+## The operator’s screen
+
+On the product side, the plate work became a set of screens: search a plate and see every passage; a **trace map** with a passage viewer; a proximity view anchored on a chosen passage, for “what else was near this car”; monitored plates organised in groups **by alert priority**, as cards or as a table. The same shape was then applied to faces: an alerts tab, an enrolment flow, and categories that carry a priority on the **same scale as plates**, so an operator ranks people and vehicles with one vocabulary. A test pins the product’s timezone, because a time-based screen that silently reads the wrong zone is wrong in a way that looks right.
+
+## Faces, scoped
+
+The facial integration is multi-tenant, and the rule that shaped my part of it is **fail closed**: a search runs as the caller’s account inside its own scope, an unresolved camera or a card belonging to another tenant is dropped before it is used, and a photo cannot be attached to a card the caller was not authorised for. Live alerts reach the browser over server-sent events, and the service stops streaming to a browser that has gone away.
 
 ## PTZ control is a latency problem wearing a UI
 
@@ -43,7 +62,7 @@ So I wrote simulators in Go for the things the platform ingests:
 - traffic lights, including their **failure modes**, not just their happy path
 - public lighting
 - GPS tracking that walks a vehicle along a GeoJSON route
-- facial detection events
+- face-detection events
 
 Each runs as a set of goroutines with shared state behind mutexes, producing traffic that looks like the real feed. The result is that the entire pipeline — ingestion, enrichment, aggregation, dashboard — can be exercised end to end without a single piece of physical hardware. It changed how quickly we could trust a change.
 
@@ -51,7 +70,7 @@ Writing the failure modes was the part that paid off most. Systems that only eve
 
 ## Indicators that survive comparison
 
-Every city measures itself slightly differently, and a platform serving several of them cannot let that leak into the dashboard. The KPI service combines traffic, weather and urban-infrastructure data into indicators that mean the same thing in each tenant — which is mostly a normalisation and definitions problem, and only incidentally a code problem.
+Every city measures itself slightly differently, and a platform serving several of them cannot let that leak into the dashboard. The KPI service combines traffic, weather and urban-infrastructure data into indicators that mean the same thing in each tenant — which is mostly a normalisation and definitions problem, and only incidentally a code problem. The rainfall indicators are the small example: rolling six- and twelve-hour totals built from each station’s sensor history rather than from whatever the station last reported.
 
 ## The mosaic
 

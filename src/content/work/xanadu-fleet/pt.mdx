@@ -6,12 +6,14 @@ Ninguém conseguia responder à única pergunta que importava: *em que estado es
 
 ## O que o sistema faz
 
-- Checklists digitais versionados — 58 itens para caminhão, 19 para máquina — executados na entrega e na devolução do veículo.
-- Um PWA offline-first que as equipes de campo usam para registrar inspeções e fotos sem conexão, sincronizando depois.
-- Um admin web feito com `html/template` e htmx para ativos, usuários, papéis e relatórios.
-- Controle de acesso por papel: motorista, supervisor e administrador.
-- Um fluxo de não conformidade, para que um item reprovado vire responsabilidade de alguém em vez de uma observação que ninguém lê.
-- Uma cadeia criptográfica de evidências que torna os registros à prova de adulteração.
+- Checklists digitais versionados — 58 itens para caminhão, 19 para máquina, carretas vinculadas à inspeção — executados na entrega e na devolução do veículo.
+- Um PWA offline-first que as equipes de campo usam para registrar inspeções, fotos e abastecimentos sem conexão, sincronizando depois.
+- Um admin web feito com `html/template` e htmx: ativos, usuários, relatórios, um painel do gestor, exportações em CSV.
+- Grupos de permissão — motorista, operador, gestor, administrador — editados no próprio sistema, de modo que ampliar o que um grupo pode fazer é uma concessão, não um deploy.
+- Correções que substituem um registro em vez de editá-lo, e não conformidades que seguem para a viagem seguinte.
+- Uma cadeia de hashes por tenant, assinada e ancorada em armazenamento write-once, para que os registros sejam evidência, e não opinião.
+
+Dez Architecture Decision Records documentam as escolhas abaixo; três manuais — motorista, gestor e administrador — documentam o resultado.
 
 ## Versionar o checklist veio primeiro
 
@@ -19,34 +21,65 @@ A primeira decisão de verdade não tinha nada a ver com funcionar offline. Era 
 
 Então versões de checklist são imutáveis, e cada inspeção fixa a versão exata contra a qual foi executada. Acrescentar um item cria uma nova versão; os registros antigos continuam apontando para a versão antiga e continuam dizendo a verdade. Custa um join e um pouco de disciplina na tela de administração, e é a diferença entre um registro e um palpite.
 
-## Offline-first é, na verdade, um problema de resolução de conflitos
+## Um registro nunca é editado, só substituído
 
-“Funciona offline” soa como um recurso de armazenamento. Não é. Guardar uma inspeção localmente é a metade fácil — o navegador faz isso de bom grado. A metade difícil é o que acontece quando duas pessoas, dois aparelhos e um cache desatualizado voltam à rede com opiniões sobre o mesmo veículo.
+Uma inspeção é evidência legal, então é imutável a partir do envio — as tabelas são append-only, com triggers que bloqueiam `UPDATE` e `DELETE`. Mas motoristas erram de verdade: uma leitura de hodômetro errada, um item marcado no lugar errado. O caminho de correção precisava consertar o dado sem tocar no registro.
 
-O desenho que tornou isso tratável foi tratar a inspeção como um **evento append-only**, e não como uma linha mutável. A equipe não edita o estado do caminhão; ela registra que, em determinado momento e contra determinada versão do checklist, estes itens estavam nesta condição. Duas inspeções do mesmo veículo nunca entram em conflito, porque são dois fatos diferentes sobre dois momentos diferentes. A sincronização vira uma questão de entrega e deduplicação, não de merge.
+Uma correção é uma **nova inspeção que substitui uma anterior**. Ela carrega uma referência ao registro que substitui; o original nunca é modificado e permanece no histórico, marcado como substituído. As páginas de detalhe apontam uma para a outra. Só o registro mais novo de uma cadeia pode ser corrigido, então existe sempre exatamente uma resposta atual.
 
-As fotos sincronizam separadamente do corpo da inspeção, porque um checklist de 58 itens com algumas fotos é um payload pequeno e vários grandes — e eles falham por motivos diferentes numa conexão de posto de estrada.
+A parte sutil é que o próprio vínculo de substituição é comprometido na cadeia de hashes — mas só quando existe. Registros feitos antes de existirem correções produzem o mesmo hash, byte a byte, e continuam verificando. O vínculo, portanto, não pode ser redirecionado nem escondido depois.
 
-## Tornar os registros confiáveis
+## Offline-first, e o que isso significou de fato
 
-Uma trilha de auditoria que pode ser editada é decoração. Se o objetivo do sistema é responder a uma pergunta meses depois, na frente de alguém com dinheiro em jogo, então “o banco diz que sim” precisa significar alguma coisa.
+O cliente móvel é um PWA, e não um app nativo, e o raciocínio foi medido, não presumido: a frota de motoristas é padronizada em Android, então a única fraqueza real de um PWA — o iOS descartar armazenamento não sincronizado — não se aplica. Um app nativo teria acrescentado uma conta em loja, um ciclo de revisão e uma segunda toolchain para um desenvolvedor solo manter, para atender uma frota que o PWA já atendia.
 
-Os registros são selados num envelope write-once com uma cadeia criptográfica, de modo que alterar uma inspeção passada quebra a cadeia e fica visível. Isso não torna a adulteração impossível — nada além de um terceiro confiável tornaria —, mas a torna **evidente**, que é para isso que uma trilha de auditoria serve de fato.
+O que offline-first custou na prática:
+
+- Uma **fila durável** em IndexedDB no aparelho, com armazenamento persistente solicitado para que o navegador não a descarte.
+- Uma **API REST de sincronização neutra em relação ao framework** — puxa dados de referência, empurra inspeções — para que a escolha do cliente continue reversível sem mexer no servidor.
+- Ingestão que tolera o mundo real: registros que chegam fora de ordem não podem fazer o hodômetro de um ativo andar para trás, e uma inspeção com relógio muito defasado é **colocada em quarentena**, em vez de confiada ou descartada.
+- Fotos vão por um **canal separado**. O aparelho pede uma URL pré-assinada, envia os bytes ao object storage e depois registra a foto no seu registro — e o servidor confere que o hash declarado bate com o que de fato chegou. Um registro é aceito antes de suas fotos chegarem, então um checklist nunca fica refém de uma imagem lenta.
+
+## Levar um defeito adiante sem mentir sobre a foto
+
+Quando um motorista inicia uma inspeção, todo item reprovado na inspeção anterior daquele caminhão volta pré-marcado. Para um defeito que tinha foto, o motorista escolhe: **manter**, **atualizar** a foto ou marcar como **corrigido**.
+
+“Manter” é o caso interessante. As regras de evidência proíbem que uma foto antiga se passe por captura de hoje, mas obrigar a fotografar de novo uma trinca que não mudou é um tipo enganoso de honestidade. A solução foi reutilizar a foto **por hash, com procedência datada**: o novo resultado declara o mesmo hash de foto da inspeção anterior mais a data em que ela foi originalmente capturada, e essa procedência é selada na cadeia de hashes. O motorista vê a foto anterior de verdade antes de escolher — baixada e guardada durante a última sincronização, então funciona sem sinal — e o servidor recusa qualquer alegação de “trazida de” que a cadeia já não tenha comprometido para aquele ativo. Nada se passa por hoje sem ter sido reafirmado hoje.
+
+## Evidência que se pode entregar a um terceiro
+
+O Postgres gerenciado do provedor de hospedagem não oferecia recuperação contínua point-in-time, e o registro de inspeção é a camada legal. Então o desenho trata o object storage como o log de eventos autoritativo e o Postgres como uma projeção reconstruível:
+
+| Camada | Mecanismo |
+| --- | --- |
+| Prova de adulteração | Cadeia de hashes por tenant gravada na inserção: `record_hash = sha256(payload canônico ‖ prev_hash ‖ seq)`, com prefixo de tamanho para que fronteiras de campo não colidam, e resultados ordenados para que o hash independa da ordem de inserção |
+| Imutabilidade | Tabelas append-only impostas por triggers, não por convenção |
+| Cópia fora da máquina | Um worker em segundo plano assina cada hash de registro com uma chave **Ed25519** e o grava num bucket com **Object Lock em modo compliance** — uma retenção que nem o dono da conta consegue encurtar |
+| Sinal de saúde | Atraso de ancoragem, `max(seq) − último seq ancorado`; zero significa que toda inspeção chegou à cópia imutável, e um atraso crescente é o alarme de backup |
+| Checkpoints | Um resumo assinado da cabeça da cadeia uma vez por dia |
+| Auditoria independente | Uma ferramenta `evidence-verify` que lê apenas o bucket e a chave pública publicada — **sem banco de dados** — para que um auditor ou um tribunal confira o log sem confiar no servidor |
+
+O exercício de restauração é um runbook, e ele é executado. Backup não testado não conta.
+
+## Abastecimento, deliberadamente sem cadeia
+
+Motoristas da divisão florestal abastecem no comboio do cliente e preenchem a requisição de papel do cliente; a empresa não guardava cópia digital própria. A captura de abastecimento reaproveita toda a máquina de campo — offline, IDs gerados no cliente, envio idempotente, foto obrigatória do canhoto selada no registro na captura — e registra litros de diesel e de ARLA contra a leitura do ativo.
+
+É append-only, mas **não** faz parte da cadeia de hashes, e isso foi uma decisão, não um esquecimento. O cliente detém a cópia autoritativa de cada requisição; este registro é evidência de conciliação, não o registro legal primário, e encadeá-lo seria custo sem uma alegação por trás. O ADR nomeia o gatilho para revisitar: se o registro de abastecimento um dia virar evidência de faturamento, ganha a própria cadeia.
+
+Abastecimentos suspeitos são sinalizados, nunca rejeitados. Litros que discordam da bomba, relógio defasado, ativo sem responsável — tudo é aceito e marcado na lista administrativa, porque um registro recusado no campo é um registro perdido.
 
 ## Rodando em produção
 
-Esta é a parte que projetos solo costumam pular, e a parte em que eu mais queria praticar:
-
 | Preocupação | Como é tratada |
 | --- | --- |
-| Mudanças de schema | Migrações com Goose, versionadas e no repositório |
-| Regressões | Testes unitários e de integração a cada push, via GitHub Actions |
-| Uploads lentos ou hostis | Timeouts explícitos no caminho de upload |
-| Deploys | Graceful shutdown, para não descartar inspeções em andamento |
-| Perder o banco | Backups com `pg_dump` e recuperação point-in-time |
-| Esquecer o porquê | Sete Architecture Decision Records |
-
-Os ADRs acabaram importando mais do que eu esperava. Seis meses depois, eu não conseguiria reconstruir com segurança por que escolhi uma abordagem em vez de outra só pelo código — o código mostra o que venceu, nunca o que perdeu.
+| Regressões | `go vet`, `go build` e `go test` a cada push, contra um Postgres novo |
+| Mudanças de schema | Migrações com Goose, versionadas e no repositório — já passam de cinquenta |
+| Deploys | Um workflow sob demanda constrói a imagem e instala por SSH; nada é publicado por acidente |
+| Perder o banco | Snapshots mais o log assinado fora da máquina descrito acima |
+| Dados pessoais | Exportações CSV com nomes de motoristas têm limite de taxa e são auditadas |
+| Superfície de ataque no navegador | Uma Content-Security-Policy de base |
+| Esquecer o porquê | Dez ADRs e três runbooks: deploy, recuperação de desastre, ancoragem de evidências |
 
 ## Por que htmx, e não React
 
@@ -54,6 +87,6 @@ O admin é formulário e tabela. Todo estado que ele manipula vive no Postgres, 
 
 `html/template` com htmx dá ao admin atualizações parciais sem nada disso. A complexidade de cliente vai para onde ela é realmente inevitável: o PWA offline, que de fato precisa guardar estado, enfileirar trabalho e resolvê-lo depois.
 
-## O que eu faria diferente
+## Onde está agora
 
-A sincronização de fotos cresceu organicamente e hoje eu a projetaria de forma deliberada — um único caminho de upload retomável com backoff explícito, em vez da lógica de retry que acabei escrevendo. Também escreveria os ADRs enquanto tomava as decisões, e não logo depois; o raciocínio é mais nítido antes de você começar a defendê-lo.
+Perto de 300 commits. Desde junho, a interface inteira foi reconstruída a partir de um protótipo de design sobre uma única folha de estilos do design system; a página inicial virou um painel do gestor, com relatórios de combustível, por divisão e com drill-through; e o sistema passou a conciliar os próprios números com o ERP da empresa — resultado por filial, cruzando documentos de frete com os registros do ERP —, que é onde um sistema de frota deixa de ser um formulário e vira um argumento que se pode vencer.
