@@ -22,17 +22,19 @@ export const en = {
 
   hero: {
     name: "Henrique Kasprzak",
+    role: "Full-stack developer, Go and React",
+    photoAlt: "Portrait of Henrique Kasprzak",
     headline: "I build systems that read the physical world and keep the data honest.",
     intro:
       "Full-stack developer in Curitiba, Brazil — Go on the backend, React on the front. At Metropolys I write the services behind a smart-city platform: plate and face recognition, camera control, telemetry from sensors across a city, and the screens operators watch it all from. Off the clock I build complete systems on my own, end to end.",
     availability: "Open to backend and full-stack roles, remote or in Curitiba.",
-    emailCta: "Get in touch",
+    whatsappCta: "Message me on WhatsApp",
     workCta: "Read the case studies",
     facts: [
       { label: "Now", value: "Developer at Metropolys" },
       { label: "Focus", value: "Go services, real-time data" },
       { label: "Based in", value: "Curitiba, Brazil" },
-      { label: "Graduating", value: "Computer Engineering, 2026" },
+      { label: "Degree", value: "Computer Engineering, 2026" },
     ],
   },
 
@@ -121,6 +123,21 @@ export const en = {
     ],
   },
 
+  signals: {
+    label: "Signals from a city and a fleet arriving at one operations hub",
+    hub: "Operations",
+    caption: "Seven kinds of signal, one place they all arrive.",
+    nodes: [
+      { key: "plate", label: "Plate camera", event: "Plate read" },
+      { key: "face", label: "Face camera", event: "Face match" },
+      { key: "signal", label: "Traffic light", event: "Signal fault" },
+      { key: "lamp", label: "Streetlight", event: "Lamp offline" },
+      { key: "rain", label: "Rain gauge", event: "6 h rainfall" },
+      { key: "bus", label: "Bus", event: "Position update" },
+      { key: "truck", label: "Truck, in the field", event: "Inspection synced" },
+    ],
+  },
+
   work: {
     title: "Selected work",
     intro:
@@ -137,7 +154,7 @@ export const en = {
     title: "About",
     lede: "Computer engineer, backend by instinct, shipping things that run in production.",
     body: [
-      "I'm finishing a Computer Engineering degree at Universidade Positivo while working as a developer at Metropolys, on a platform that pulls a city's data into one place in real time. Most of what I write is Go: ingestion services for plate reads and face matches from camera platforms, with watchlist alerts for both; a PTZ camera-control service; feeds for public transit, traffic and weather; and sensor and street-lighting telemetry over MQTT. I also built the KPI service that turns all of it into comparable indicators across cities, and the simulators that let us test the whole pipeline without a single physical camera.",
+      "I graduated in Computer Engineering from Universidade Positivo in 2026 and work as a developer at Metropolys, on a platform that pulls a city's data into one place in real time. Most of what I write is Go: ingestion services for plate reads and face matches from camera platforms, with watchlist alerts for both; a PTZ camera-control service; feeds for public transit, traffic and weather; and sensor and street-lighting telemetry over MQTT. I also built the KPI service that turns all of it into comparable indicators across cities, and the simulators that let us test the whole pipeline without a single physical camera.",
       "When something needs a front end, I build that too — a React overlay for driving PTZ cameras over a live video stream, a camera mosaic with draggable tiles and a map for the operations dashboard, and the product screens where an operator searches a plate, follows a vehicle across the city and manages the lists that raise alerts.",
       "Outside work I build complete systems alone, which is where I've learned the most: what a migration strategy is for, why an offline-first app is mostly a conflict-resolution problem, and how quickly an audit trail becomes worthless if nothing makes it tamper-evident.",
       "My bias is toward simple and direct. I'd rather write a lean HTTP handler than adopt a framework, and understand a problem than add a dependency. I use AI seriously as a tool — for research, prototyping and review — without handing over my understanding of what I've built.",

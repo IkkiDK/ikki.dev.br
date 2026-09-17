@@ -12,6 +12,7 @@ import "../globals.css";
 
 const archivo = Archivo({
   subsets: ["latin"],
+  axes: ["wdth"],
   variable: "--font-archivo",
   display: "swap",
 });

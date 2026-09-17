@@ -24,17 +24,19 @@ export const pt: Dictionary = {
 
   hero: {
     name: "Henrique Kasprzak",
+    role: "Desenvolvedor full-stack, Go e React",
+    photoAlt: "Retrato de Henrique Kasprzak",
     headline: "Construo sistemas que leem o mundo físico e mantêm os dados íntegros.",
     intro:
       "Desenvolvedor full-stack em Curitiba — Go no backend, React no front. Na Metropolys escrevo os serviços por trás de uma plataforma de cidade inteligente: reconhecimento de placas e faces, controle de câmeras, telemetria de sensores espalhados pela cidade e as telas de onde os operadores acompanham tudo isso. Fora do trabalho, construo sistemas completos sozinho, de ponta a ponta.",
     availability: "Aberto a vagas de backend e full-stack, remoto ou em Curitiba.",
-    emailCta: "Entrar em contato",
+    whatsappCta: "Chamar no WhatsApp",
     workCta: "Ler os estudos de caso",
     facts: [
       { label: "Hoje", value: "Desenvolvedor na Metropolys" },
       { label: "Foco", value: "Serviços em Go, dados em tempo real" },
       { label: "Base", value: "Curitiba, Brasil" },
-      { label: "Formatura", value: "Engenharia de Computação, 2026" },
+      { label: "Formação", value: "Engenharia de Computação, 2026" },
     ],
   },
 
@@ -123,6 +125,21 @@ export const pt: Dictionary = {
     ],
   },
 
+  signals: {
+    label: "Sinais de uma cidade e de uma frota chegando a um único centro de operações",
+    hub: "Operações",
+    caption: "Sete tipos de sinal, um lugar onde todos chegam.",
+    nodes: [
+      { key: "plate", label: "Câmera de placas", event: "Leitura de placa" },
+      { key: "face", label: "Câmera facial", event: "Face reconhecida" },
+      { key: "signal", label: "Semáforo", event: "Falha no semáforo" },
+      { key: "lamp", label: "Poste de luz", event: "Lâmpada apagada" },
+      { key: "rain", label: "Pluviômetro", event: "Chuva em 6 h" },
+      { key: "bus", label: "Ônibus", event: "Posição atualizada" },
+      { key: "truck", label: "Caminhão, no campo", event: "Inspeção sincronizada" },
+    ],
+  },
+
   work: {
     title: "Projetos selecionados",
     intro:
@@ -139,7 +156,7 @@ export const pt: Dictionary = {
     title: "Sobre",
     lede: "Engenheiro de computação, backend por instinto, entregando coisas que rodam em produção.",
     body: [
-      "Estou terminando Engenharia de Computação na Universidade Positivo enquanto trabalho como desenvolvedor na Metropolys, em uma plataforma que reúne os dados de uma cidade em tempo real. A maior parte do que escrevo é Go: serviços de ingestão de leituras de placa e reconhecimentos faciais vindos de plataformas de câmeras, com alertas de listas de interesse para os dois; um serviço de controle de câmeras PTZ; feeds de transporte público, trânsito e clima; e telemetria de sensores e iluminação pública sobre MQTT. Também construí o serviço de KPIs que transforma tudo isso em indicadores comparáveis entre cidades, e os simuladores que permitem testar o pipeline inteiro sem uma única câmera física.",
+      "Formei-me em Engenharia de Computação pela Universidade Positivo em 2026 e trabalho como desenvolvedor na Metropolys, em uma plataforma que reúne os dados de uma cidade em tempo real. A maior parte do que escrevo é Go: serviços de ingestão de leituras de placa e reconhecimentos faciais vindos de plataformas de câmeras, com alertas de listas de interesse para os dois; um serviço de controle de câmeras PTZ; feeds de transporte público, trânsito e clima; e telemetria de sensores e iluminação pública sobre MQTT. Também construí o serviço de KPIs que transforma tudo isso em indicadores comparáveis entre cidades, e os simuladores que permitem testar o pipeline inteiro sem uma única câmera física.",
       "Quando algo precisa de front-end, eu construo também — um overlay em React para controlar câmeras PTZ sobre o vídeo ao vivo, um mosaico de câmeras com blocos arrastáveis e mapa para o painel de operações, e as telas do produto em que um operador pesquisa uma placa, segue um veículo pela cidade e gerencia as listas que disparam alertas.",
       "Fora do trabalho construo sistemas completos sozinho, e foi aí que mais aprendi: para que serve uma estratégia de migrações, por que um app offline-first é sobretudo um problema de resolução de conflitos, e com que rapidez uma trilha de auditoria perde o valor se nada a torna à prova de adulteração.",
       "Minha tendência é buscar o simples e direto. Prefiro escrever um handler HTTP enxuto a adotar um framework, e entender um problema a acrescentar uma dependência. Uso IA a sério como ferramenta — pesquisa, protótipo e revisão — sem abrir mão de entender o que construí.",

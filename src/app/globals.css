@@ -32,6 +32,8 @@
   --btn-bg: #14181d;
   --btn-fg: #f2f4f3;
   --panel-ring: transparent;
+  --hero-bg: #14181d;
+  --hero-fg: #f2f4f3;
   color-scheme: light;
 }
 
@@ -52,6 +54,8 @@
     --btn-bg: #f2f4f3;
     --btn-fg: #14181d;
     --panel-ring: rgba(255, 255, 255, 0.09);
+    --hero-bg: #0f1317;
+    --hero-fg: #f2f4f3;
     color-scheme: dark;
   }
 }
@@ -72,6 +76,8 @@
   --btn-bg: #f2f4f3;
   --btn-fg: #14181d;
   --panel-ring: rgba(255, 255, 255, 0.09);
+  --hero-bg: #0f1317;
+  --hero-fg: #f2f4f3;
   color-scheme: dark;
 }
 
@@ -109,6 +115,32 @@ h1, h2, h3, h4 {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
   border-radius: 2px;
+}
+
+/* A signal travelling a route drawn with pathLength=1: dash 0.16, gap 1. */
+@keyframes signal-travel {
+  0% { stroke-dashoffset: 1.16; opacity: 1; }
+  85% { opacity: 1; }
+  100% { stroke-dashoffset: 0.16; opacity: 0; }
+}
+
+@keyframes signal-ring {
+  from { r: 5; opacity: 0.9; }
+  to { r: 26; opacity: 0; }
+}
+
+.signal-live {
+  stroke-dasharray: 0.16 1;
+  stroke-dashoffset: 1.16;
+  animation: signal-travel 1.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.signal-pulse {
+  animation: signal-ring 1.1s ease-out forwards;
+}
+
+.signal-arrive {
+  animation: signal-ring 1s ease-out 1.3s forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
