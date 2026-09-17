@@ -22,7 +22,6 @@ export const en = {
 
   hero: {
     name: "Henrique Kasprzak",
-    role: "Full-stack developer, Go and React",
     photoAlt: "Portrait of Henrique Kasprzak",
     headline: "I build systems that read the physical world and keep the data honest.",
     intro:

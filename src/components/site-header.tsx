@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { LocaleSwitch } from "@/components/locale-switch";
 import { NavLink } from "@/components/nav-link";
@@ -12,8 +13,16 @@ export function SiteHeader({ locale, dict }: { locale: Locale; dict: Dictionary 
       <div className="mx-auto flex min-h-16 w-full max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-3">
         <Link
           href={`/${locale}`}
-          className="font-[family-name:var(--font-display)] text-[0.95rem] font-semibold tracking-tight"
+          className="flex items-center gap-2.5 font-[family-name:var(--font-display)] text-[0.95rem] font-semibold tracking-tight"
         >
+          <Image
+            src="/henrique-kasprzak.jpg"
+            alt={dict.hero.photoAlt}
+            width={32}
+            height={32}
+            priority
+            className="size-8 rounded-full object-cover ring-1 ring-[var(--line-strong)]"
+          />
           {dict.hero.name}
         </Link>
 

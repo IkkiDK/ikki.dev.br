@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CitySignals } from "@/components/city-signals";
@@ -16,36 +15,19 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   return (
     <>
-      <section className="border-b border-white/10 bg-[var(--hero-bg)] text-[var(--hero-fg)]">
+      <section className="border-b border-[var(--hero-line)] bg-[var(--hero-bg)] text-[var(--hero-fg)]">
         <div className="mx-auto grid w-full max-w-5xl gap-x-12 gap-y-12 px-6 pb-16 pt-16 sm:pt-20 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-center">
           <div className="min-w-0">
-            <div className="mb-9 flex items-center gap-4">
-              <Image
-                src="/henrique-kasprzak.jpg"
-                alt={dict.hero.photoAlt}
-                width={64}
-                height={64}
-                priority
-                className="size-16 rounded-full object-cover ring-2 ring-white/15"
-              />
-              <div>
-                <p className="font-[family-name:var(--font-display)] text-[1.05rem] font-semibold leading-tight">
-                  {dict.hero.name}
-                </p>
-                <p className="mt-0.5 text-[0.92rem] text-[#9aa6b0]">{dict.hero.role}</p>
-              </div>
-            </div>
-
             <h1 className="max-w-[19ch] text-[clamp(2.3rem,5vw,3.7rem)] font-semibold leading-[1.02] tracking-[-0.025em] [font-stretch:108%]">
               {dict.hero.headline}
             </h1>
 
-            <p className="mt-7 max-w-[56ch] text-[1.1rem] leading-[1.7] text-[#9aa6b0]">
+            <p className="mt-7 max-w-[56ch] text-[1.1rem] leading-[1.7] text-[var(--hero-muted)]">
               {dict.hero.intro}
             </p>
 
-            <p className="mt-6 flex items-center gap-2.5 text-[0.95rem] text-[#9aa6b0]">
-              <span aria-hidden="true" className="size-2 rounded-full bg-live" />
+            <p className="mt-6 flex items-center gap-2.5 text-[0.95rem] text-[var(--hero-muted)]">
+              <span aria-hidden="true" className="size-2 rounded-full bg-[var(--live-ink)]" />
               {dict.hero.availability}
             </p>
 
@@ -58,7 +40,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               </Link>
               <a
                 href={`https://wa.me/${site.whatsapp.number}`}
-                className="rounded-full border border-white/20 px-5 py-2.5 font-[family-name:var(--font-display)] text-[0.92rem] text-[var(--hero-fg)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+                className="rounded-full border border-[var(--line-strong)] px-5 py-2.5 font-[family-name:var(--font-display)] text-[0.92rem] text-[var(--hero-fg)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-ink)]"
               >
                 {dict.hero.whatsappCta}
               </a>

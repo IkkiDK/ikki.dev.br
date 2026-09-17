@@ -24,7 +24,6 @@ export const pt: Dictionary = {
 
   hero: {
     name: "Henrique Kasprzak",
-    role: "Desenvolvedor full-stack, Go e React",
     photoAlt: "Retrato de Henrique Kasprzak",
     headline: "Construo sistemas que leem o mundo físico e mantêm os dados íntegros.",
     intro:
