@@ -42,7 +42,7 @@ export const proseComponents: MDXComponents = {
   pre: (props) => (
     <pre
       {...props}
-      className="mt-6 overflow-x-auto rounded-lg bg-[var(--panel)] p-5 font-[family-name:var(--font-mono)] text-[0.8rem] leading-[1.7] text-[#c8d1d6] [&_code]:bg-transparent [&_code]:p-0 [&_code]:text-inherit [&_code]:ring-0"
+      className="mt-6 overflow-x-auto rounded-lg bg-[var(--code-bg)] p-5 font-[family-name:var(--font-mono)] text-[0.8rem] leading-[1.7] text-[var(--code-fg)] ring-1 ring-[var(--trace-line)] [&_code]:bg-transparent [&_code]:p-0 [&_code]:text-inherit [&_code]:ring-0"
     />
   ),
   table: (props) => (

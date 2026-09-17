@@ -29,9 +29,6 @@ const SOURCES: Source[] = [
   { x: 180, y: 150, route: "M180 150 H250 V230 H330", fleet: true, anchor: "start", labelDy: -14 },
 ];
 
-const IDLE = "#4b5661";
-const LABEL = "#9aa6b0";
-
 export function CitySignals({ signals }: { signals: Dictionary["signals"] }) {
   const [active, setActive] = useState<number | null>(null);
   const [tick, setTick] = useState(0);
@@ -53,7 +50,7 @@ export function CitySignals({ signals }: { signals: Dictionary["signals"] }) {
   return (
     <figure className="w-full">
       <svg viewBox="0 0 600 420" role="img" aria-label={signals.label} className="h-auto w-full">
-        <g stroke="rgba(242,244,243,0.14)" strokeWidth="1">
+        <g stroke="var(--map-grid)" strokeWidth="1">
           {GRID_Y.map((y) => (
             <line key={`h${y}`} x1="40" y1={y} x2="580" y2={y} />
           ))}
@@ -79,7 +76,7 @@ export function CitySignals({ signals }: { signals: Dictionary["signals"] }) {
         {SOURCES.map((source, index) => {
           const node = signals.nodes[index];
           const lit = active === null || active === index;
-          const fill = lit ? "var(--accent)" : IDLE;
+          const fill = lit ? "var(--accent)" : "var(--map-idle)";
           return (
             <g key={node.key}>
               {active === index ? (
@@ -103,7 +100,7 @@ export function CitySignals({ signals }: { signals: Dictionary["signals"] }) {
                 x={source.x}
                 y={source.y + source.labelDy}
                 textAnchor={source.anchor}
-                fill={LABEL}
+                fill="var(--map-label)"
                 fontSize="12.5"
                 className="font-[family-name:var(--font-display)]"
               >
@@ -126,13 +123,13 @@ export function CitySignals({ signals }: { signals: Dictionary["signals"] }) {
               strokeWidth="1.5"
             />
           ) : null}
-          <circle cx={HUB.x} cy={HUB.y} r="22" fill="rgba(240,180,41,0.16)" />
+          <circle cx={HUB.x} cy={HUB.y} r="22" fill="var(--map-glow)" />
           <circle cx={HUB.x} cy={HUB.y} r="8" fill="var(--accent)" />
           <text
             x={HUB.x}
             y={HUB.y - 24}
             textAnchor="middle"
-            fill="#e6ebe9"
+            fill="var(--map-hub-label)"
             fontSize="12.5"
             className="font-[family-name:var(--font-display)]"
           >
@@ -141,11 +138,11 @@ export function CitySignals({ signals }: { signals: Dictionary["signals"] }) {
         </g>
       </svg>
 
-      <figcaption className="mt-3 flex min-h-6 items-center gap-2.5 text-[0.85rem] text-[#9aa6b0]">
+      <figcaption className="mt-3 flex min-h-6 items-center gap-2.5 text-[0.85rem] text-[var(--hero-muted)]">
         <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
         {current ? (
           <>
-            <span className="font-[family-name:var(--font-mono)] text-[0.8rem] text-[#e6ebe9]">
+            <span className="font-[family-name:var(--font-mono)] text-[0.8rem] text-[var(--hero-fg)]">
               {current.event}
             </span>
             <span>— {current.label}</span>

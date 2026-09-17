@@ -62,14 +62,14 @@ export function EventTrace({ trace }: { trace: Dictionary["trace"] }) {
   return (
     <section
       aria-label={trace.title}
-      className="overflow-hidden rounded-xl bg-[var(--panel)] text-[var(--panel-fg)] ring-1 ring-[var(--panel-ring)] shadow-[0_24px_60px_-32px_rgba(20,24,29,0.55)]"
+      className="overflow-hidden rounded-xl bg-[var(--trace-bg)] text-[var(--trace-fg)] ring-1 ring-[var(--trace-line)] shadow-[0_24px_60px_-32px_rgba(20,24,29,0.35)]"
     >
-      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-b border-white/10 px-6 py-5 sm:px-7">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-b border-[var(--trace-line)] px-6 py-5 sm:px-7">
         <div>
-          <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--panel-fg)]">
+          <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--trace-fg)]">
             {trace.title}
           </h2>
-          <p className="mt-1 max-w-[52ch] text-[0.92rem] leading-relaxed text-[#9aa6b0]">
+          <p className="mt-1 max-w-[52ch] text-[0.92rem] leading-relaxed text-[var(--trace-muted)]">
             {trace.caption}
           </p>
         </div>
@@ -78,14 +78,14 @@ export function EventTrace({ trace }: { trace: Dictionary["trace"] }) {
           type="button"
           onClick={play}
           disabled={running}
-          className="shrink-0 rounded-full border border-white/15 px-4 py-1.5 font-[family-name:var(--font-display)] text-[0.82rem] text-[#e6ebe9] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:cursor-default disabled:border-white/10 disabled:text-[#6e7b85]"
+          className="shrink-0 rounded-full border border-[var(--line-strong)] px-4 py-1.5 font-[family-name:var(--font-display)] text-[0.82rem] text-[var(--trace-fg)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-ink)] disabled:cursor-default disabled:border-[var(--trace-line)] disabled:text-[var(--trace-faint)]"
         >
           {running ? trace.running : trace.replay}
         </button>
       </div>
 
-      <div className="grid gap-px bg-white/10 md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
-        <ol className="bg-[var(--panel)] px-6 py-6 sm:px-7">
+      <div className="grid gap-px bg-[var(--trace-line)] md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+        <ol className="bg-[var(--trace-bg)] px-6 py-6 sm:px-7">
           {steps.map((step, index) => {
             const done = index < active;
             const isCurrent = index === active;
@@ -95,7 +95,7 @@ export function EventTrace({ trace }: { trace: Dictionary["trace"] }) {
                   <span
                     aria-hidden="true"
                     className="absolute left-[7px] top-4 bottom-0 w-px"
-                    style={{ background: done ? "var(--accent)" : "rgba(255,255,255,0.14)" }}
+                    style={{ background: done ? "var(--accent)" : "var(--trace-line)" }}
                   />
                 ) : null}
 
@@ -103,8 +103,8 @@ export function EventTrace({ trace }: { trace: Dictionary["trace"] }) {
                   aria-hidden="true"
                   className="relative z-10 mt-[5px] size-[15px] shrink-0 rounded-full border-2 transition-colors"
                   style={{
-                    borderColor: done || isCurrent ? "var(--accent)" : "rgba(255,255,255,0.28)",
-                    background: done ? "var(--accent)" : "var(--panel)",
+                    borderColor: done || isCurrent ? "var(--accent)" : "var(--trace-faint)",
+                    background: done ? "var(--accent)" : "var(--trace-bg)",
                     boxShadow: isCurrent ? "0 0 0 5px rgba(240,180,41,0.18)" : undefined,
                   }}
                 />
@@ -117,13 +117,13 @@ export function EventTrace({ trace }: { trace: Dictionary["trace"] }) {
                 >
                   <span
                     className="block font-[family-name:var(--font-display)] text-[0.95rem] font-medium transition-colors"
-                    style={{ color: isCurrent || done ? "var(--panel-fg)" : "#6e7b85" }}
+                    style={{ color: isCurrent || done ? "var(--trace-fg)" : "var(--trace-faint)" }}
                   >
                     {step.label}
                   </span>
                   <span
                     className="mt-0.5 block max-w-[46ch] text-[0.86rem] leading-snug transition-colors"
-                    style={{ color: isCurrent ? "#9aa6b0" : "#5f6b75" }}
+                    style={{ color: isCurrent ? "var(--trace-muted)" : "var(--trace-faint)" }}
                   >
                     {step.note}
                   </span>
@@ -133,11 +133,11 @@ export function EventTrace({ trace }: { trace: Dictionary["trace"] }) {
           })}
         </ol>
 
-        <div className="bg-[#0b0f13] px-6 py-6 sm:px-7">
-          <p className="mb-3 text-[0.78rem] text-[#5f6b75]">
+        <div className="bg-[var(--code-bg)] px-6 py-6 sm:px-7">
+          <p className="mb-3 text-[0.78rem] text-[var(--trace-faint)]">
             {trace.payloadLabel} — {trace.stageLabel} {active + 1}/{steps.length}
           </p>
-          <pre className="min-h-[14rem] overflow-x-auto font-[family-name:var(--font-mono)] text-[0.8rem] leading-[1.9] text-[#c8d1d6]">
+          <pre className="min-h-[14rem] overflow-x-auto font-[family-name:var(--font-mono)] text-[0.8rem] leading-[1.9] text-[var(--code-fg)]">
             <code>
               <JsonHighlight source={current.payload} />
             </code>

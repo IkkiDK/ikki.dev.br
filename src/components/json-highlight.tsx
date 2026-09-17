@@ -3,10 +3,10 @@ import { Fragment, type ReactNode } from "react";
 const TOKEN = /("(?:[^"\\]|\\.)*"\s*:)|("(?:[^"\\]|\\.)*")|(-?\d+(?:\.\d+)?)|(true|false|null)/g;
 
 const CLASS = {
-  key: "text-[#9aa6b0]",
-  string: "text-[#4fb8a8]",
-  number: "text-[#f0b429]",
-  literal: "text-[#f0b429]",
+  key: "text-[var(--code-key)]",
+  string: "text-[var(--code-string)]",
+  number: "text-[var(--code-number)]",
+  literal: "text-[var(--code-number)]",
 };
 
 /** Colours a JSON snippet. The input is authored content, never user data. */

@@ -31,9 +31,25 @@
   --live-ink: #1f6b60;
   --btn-bg: #14181d;
   --btn-fg: #f2f4f3;
-  --panel-ring: transparent;
-  --hero-bg: #14181d;
-  --hero-fg: #f2f4f3;
+  --hero-bg: #e9edeb;
+  --hero-fg: #14181d;
+  --hero-muted: #5a6570;
+  --hero-line: rgba(20, 24, 29, 0.12);
+  --map-grid: rgba(20, 24, 29, 0.12);
+  --map-idle: #b3bcb8;
+  --map-label: #5a6570;
+  --map-hub-label: #14181d;
+  --map-glow: rgba(240, 180, 41, 0.24);
+  --trace-bg: #fbfcfb;
+  --trace-fg: #14181d;
+  --trace-muted: #5a6570;
+  --trace-faint: #98a2aa;
+  --trace-line: #d5dad8;
+  --code-bg: #eceff0;
+  --code-fg: #1b2128;
+  --code-key: #5a6570;
+  --code-string: #1f6b60;
+  --code-number: #7a5200;
   color-scheme: light;
 }
 
@@ -53,9 +69,25 @@
     --live-ink: #4fb8a8;
     --btn-bg: #f2f4f3;
     --btn-fg: #14181d;
-    --panel-ring: rgba(255, 255, 255, 0.09);
     --hero-bg: #0f1317;
     --hero-fg: #f2f4f3;
+    --hero-muted: #9aa6b0;
+    --hero-line: rgba(255, 255, 255, 0.1);
+    --map-grid: rgba(242, 244, 243, 0.14);
+    --map-idle: #4b5661;
+    --map-label: #9aa6b0;
+    --map-hub-label: #e6ebe9;
+    --map-glow: rgba(240, 180, 41, 0.16);
+    --trace-bg: #0f1317;
+    --trace-fg: #f2f4f3;
+    --trace-muted: #9aa6b0;
+    --trace-faint: #6e7b85;
+    --trace-line: rgba(255, 255, 255, 0.1);
+    --code-bg: #0b0f13;
+    --code-fg: #c8d1d6;
+    --code-key: #9aa6b0;
+    --code-string: #4fb8a8;
+    --code-number: #f0b429;
     color-scheme: dark;
   }
 }
@@ -75,9 +107,25 @@
   --live-ink: #4fb8a8;
   --btn-bg: #f2f4f3;
   --btn-fg: #14181d;
-  --panel-ring: rgba(255, 255, 255, 0.09);
   --hero-bg: #0f1317;
   --hero-fg: #f2f4f3;
+  --hero-muted: #9aa6b0;
+  --hero-line: rgba(255, 255, 255, 0.1);
+  --map-grid: rgba(242, 244, 243, 0.14);
+  --map-idle: #4b5661;
+  --map-label: #9aa6b0;
+  --map-hub-label: #e6ebe9;
+  --map-glow: rgba(240, 180, 41, 0.16);
+  --trace-bg: #0f1317;
+  --trace-fg: #f2f4f3;
+  --trace-muted: #9aa6b0;
+  --trace-faint: #6e7b85;
+  --trace-line: rgba(255, 255, 255, 0.1);
+  --code-bg: #0b0f13;
+  --code-fg: #c8d1d6;
+  --code-key: #9aa6b0;
+  --code-string: #4fb8a8;
+  --code-number: #f0b429;
   color-scheme: dark;
 }
 
