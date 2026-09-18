@@ -1,23 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { defaultLocale, isLocale, locales } from "@/i18n/config";
+import { defaultLocale, locales } from "@/i18n/config";
 import { site } from "@/lib/site";
 
-function preferredLocale(header: string | null) {
-  if (!header) return defaultLocale;
-  const ranked = header
-    .split(",")
-    .map((part) => {
-      const [tag, q] = part.trim().split(";q=");
-      return { tag: tag.toLowerCase(), weight: q ? Number(q) : 1 };
-    })
-    .sort((a, b) => b.weight - a.weight);
-
-  for (const { tag } of ranked) {
-    const base = tag.split("-")[0];
-    if (isLocale(base)) return base;
-  }
-  return defaultLocale;
-}
+const PERMANENT_REDIRECT = 308;
 
 export function proxy(request: NextRequest) {
   /** One canonical host, so search engines never index the site twice. */
@@ -25,7 +10,7 @@ export function proxy(request: NextRequest) {
     const canonical = request.nextUrl.clone();
     canonical.host = site.domain;
     canonical.port = "";
-    return NextResponse.redirect(canonical, 308);
+    return NextResponse.redirect(canonical, PERMANENT_REDIRECT);
   }
 
   const { pathname } = request.nextUrl;
@@ -34,10 +19,13 @@ export function proxy(request: NextRequest) {
   );
   if (hasLocale) return NextResponse.next();
 
-  const locale = preferredLocale(request.headers.get("accept-language"));
+  /**
+   * A locale-less path always lands on the default locale; the header switch covers
+   * everyone else. Permanent, so crawlers fold "/" into "/pt" instead of indexing both.
+   */
   const url = request.nextUrl.clone();
-  url.pathname = `/${locale}${pathname === "/" ? "" : pathname}`;
-  return NextResponse.redirect(url);
+  url.pathname = `/${defaultLocale}${pathname === "/" ? "" : pathname}`;
+  return NextResponse.redirect(url, PERMANENT_REDIRECT);
 }
 
 export const config = {

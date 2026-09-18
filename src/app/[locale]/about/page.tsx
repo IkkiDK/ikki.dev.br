@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getDictionary } from "@/i18n";
 import { isLocale, locales } from "@/i18n/config";
+import { pageMetadata } from "@/lib/metadata";
 import { site } from "@/lib/site";
 
 export function generateStaticParams() {
@@ -14,7 +15,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   const dict = getDictionary(locale);
-  return { title: dict.about.title, description: dict.about.lede };
+  return pageMetadata({ locale, path: "/about", title: dict.about.title, description: dict.about.lede });
 }
 
 export default async function AboutPage({ params }: Params) {

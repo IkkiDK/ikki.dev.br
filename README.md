@@ -21,7 +21,7 @@ src/
   i18n/                en.ts and pt.ts dictionaries; pt is typed against en
   lib/site.ts          links, email, domain
   lib/work.ts          project registry: period, stack, links, per-locale copy
-  proxy.ts             redirects a locale-less path using Accept-Language
+  proxy.ts             308s a locale-less path to the default locale (pt)
 ```
 
 ## Adding a case study

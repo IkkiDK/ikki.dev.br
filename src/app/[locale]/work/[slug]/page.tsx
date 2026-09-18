@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDictionary } from "@/i18n";
 import { isLocale, locales } from "@/i18n/config";
+import { pageMetadata } from "@/lib/metadata";
 import { formatPeriod, getWork, work } from "@/lib/work";
 
 export function generateStaticParams() {
@@ -16,14 +17,12 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const entry = getWork(slug);
   if (!isLocale(locale) || !entry) return {};
 
-  return {
+  return pageMetadata({
+    locale,
+    path: `/work/${slug}`,
     title: `${entry.title[locale]} — ${entry.tagline[locale]}`,
     description: entry.summary[locale],
-    alternates: {
-      canonical: `/${locale}/work/${slug}`,
-      languages: { en: `/en/work/${slug}`, "pt-BR": `/pt/work/${slug}` },
-    },
-  };
+  });
 }
 
 export default async function CaseStudyPage({ params }: Params) {

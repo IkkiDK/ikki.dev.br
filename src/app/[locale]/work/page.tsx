@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { WorkRow } from "@/components/work-row";
 import { getDictionary } from "@/i18n";
 import { isLocale, locales } from "@/i18n/config";
+import { pageMetadata } from "@/lib/metadata";
 import { work } from "@/lib/work";
 
 export function generateStaticParams() {
@@ -15,7 +16,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   const dict = getDictionary(locale);
-  return { title: dict.work.title, description: dict.work.intro };
+  return pageMetadata({ locale, path: "/work", title: dict.work.title, description: dict.work.intro });
 }
 
 export default async function WorkPage({ params }: Params) {

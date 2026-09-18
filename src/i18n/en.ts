@@ -1,6 +1,7 @@
 export const en = {
   meta: {
     title: "Henrique Kasprzak — Full-stack developer, Go & React",
+    jobTitle: "Full-stack developer",
     description:
       "I build systems that read the physical world — cameras, sensors, trucks — and keep the data honest. Smart-city microservices in Go, interfaces in React. Curitiba, Brazil.",
   },

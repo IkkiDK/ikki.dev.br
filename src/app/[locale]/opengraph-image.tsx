@@ -1,11 +1,12 @@
 import { ImageResponse } from "next/og";
 import { getDictionary } from "@/i18n";
 import { isLocale, locales } from "@/i18n/config";
+import { ogImage } from "@/lib/metadata";
 import { site } from "@/lib/site";
 
-export const size = { width: 1200, height: 630 };
+export const size = { width: ogImage.width, height: ogImage.height };
 export const contentType = "image/png";
-export const alt = site.author;
+export const alt = ogImage.alt;
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));

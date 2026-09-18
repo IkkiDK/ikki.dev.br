@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { Archivo, JetBrains_Mono, Source_Serif_4 } from "next/font/google";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
+import { PersonSchema } from "@/components/person-schema";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { ThemeScript } from "@/components/theme-script";
 import { getDictionary } from "@/i18n";
 import { htmlLang, isLocale, locales, type Locale } from "@/i18n/config";
+import { pageMetadata } from "@/lib/metadata";
 import { site } from "@/lib/site";
 import "../globals.css";
 
@@ -41,23 +43,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const dict = getDictionary(locale);
 
   return {
+    ...pageMetadata({ locale, path: "", title: dict.meta.title, description: dict.meta.description }),
     metadataBase: new URL(site.url),
     title: { default: dict.meta.title, template: `%s — ${site.shortName}` },
-    description: dict.meta.description,
     authors: [{ name: site.author, url: site.url }],
-    alternates: {
-      canonical: `/${locale}`,
-      languages: { en: "/en", "pt-BR": "/pt" },
-    },
-    openGraph: {
-      type: "website",
-      url: `${site.url}/${locale}`,
-      siteName: site.shortName,
-      title: dict.meta.title,
-      description: dict.meta.description,
-      locale: htmlLang[locale].replace("-", "_"),
-    },
-    twitter: { card: "summary_large_image", title: dict.meta.title, description: dict.meta.description },
   };
 }
 
@@ -82,6 +71,7 @@ export default async function LocaleLayout({
     >
       <head>
         <ThemeScript />
+        <PersonSchema jobTitle={dict.meta.jobTitle} />
       </head>
       <body>
         <a

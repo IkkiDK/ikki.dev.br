@@ -3,6 +3,7 @@ import type { Dictionary } from "./en";
 export const pt: Dictionary = {
   meta: {
     title: "Henrique Kasprzak — Desenvolvedor full-stack, Go e React",
+    jobTitle: "Desenvolvedor full-stack",
     description:
       "Construo sistemas que leem o mundo físico — câmeras, sensores, caminhões — e mantêm os dados íntegros. Microsserviços de cidade inteligente em Go, interfaces em React. Curitiba, Brasil.",
   },
