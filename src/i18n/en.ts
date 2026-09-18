@@ -54,7 +54,7 @@ export const en = {
         payload: `{
   "camera_id": "CAM-1183",
   "captured_at": "2026-09-17T13:42:08Z",
-  "plate": "RJK4C19",
+  "plate": "ABC1D23",
   "confidence": 0.94
 }`,
       },
@@ -64,9 +64,9 @@ export const en = {
         note: "The plate crop is pulled from the camera and written to object storage.",
         payload: `{
   "camera_id": "CAM-1183",
-  "plate": "RJK4C19",
+  "plate": "ABC1D23",
   "confidence": 0.94,
-  "image": "anpr/2026/09/17/RJK4C19-1342.jpg"
+  "image": "anpr/2026/09/17/ABC1D23-1342.jpg"
 }`,
       },
       {
@@ -74,8 +74,8 @@ export const en = {
         label: "Deduplicated",
         note: "Every event gets a deterministic SHA-256 fingerprint, so the same read delivered twice — a retried webhook, a second ingestion path — is stored once.",
         payload: `{
-  "plate": "RJK4C19",
-  "image": "anpr/2026/09/17/RJK4C19-1342.jpg",
+  "plate": "ABC1D23",
+  "image": "anpr/2026/09/17/ABC1D23-1342.jpg",
   "fingerprint": "e3b0c44298fc1c14",
   "duplicate": false
 }`,
@@ -85,7 +85,7 @@ export const en = {
         label: "Vehicle resolved",
         note: "The plate is enriched with make, model and colour from the vehicle registry.",
         payload: `{
-  "plate": "RJK4C19",
+  "plate": "ABC1D23",
   "fingerprint": "e3b0c44298fc1c14",
   "vehicle": {
     "make": "VW", "model": "Saveiro",
@@ -98,7 +98,7 @@ export const en = {
         label: "Lists checked",
         note: "The plate is matched against restriction lists, each carrying its own priority.",
         payload: `{
-  "plate": "RJK4C19",
+  "plate": "ABC1D23",
   "vehicle": { "make": "VW", "model": "Saveiro" },
   "matches": [
     { "list": "stolen_vehicles", "hit": true, "priority": 1 },
@@ -111,7 +111,7 @@ export const en = {
         label: "Alert raised",
         note: "The highest-priority hit wins. A stolen vehicle reaches the operator immediately.",
         payload: `{
-  "plate": "RJK4C19",
+  "plate": "ABC1D23",
   "alert": {
     "reason": "stolen_vehicles",
     "priority": 1,

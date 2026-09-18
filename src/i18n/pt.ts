@@ -56,7 +56,7 @@ export const pt: Dictionary = {
         payload: `{
   "camera_id": "CAM-1183",
   "captured_at": "2026-09-17T13:42:08Z",
-  "plate": "RJK4C19",
+  "plate": "ABC1D23",
   "confidence": 0.94
 }`,
       },
@@ -66,9 +66,9 @@ export const pt: Dictionary = {
         note: "O recorte da placa é baixado da câmera e gravado no object storage.",
         payload: `{
   "camera_id": "CAM-1183",
-  "plate": "RJK4C19",
+  "plate": "ABC1D23",
   "confidence": 0.94,
-  "image": "anpr/2026/09/17/RJK4C19-1342.jpg"
+  "image": "anpr/2026/09/17/ABC1D23-1342.jpg"
 }`,
       },
       {
@@ -76,8 +76,8 @@ export const pt: Dictionary = {
         label: "Deduplicado",
         note: "Cada evento recebe um fingerprint SHA-256 determinístico, então a mesma leitura entregue duas vezes — um webhook reenviado, um segundo caminho de ingestão — é gravada uma vez só.",
         payload: `{
-  "plate": "RJK4C19",
-  "image": "anpr/2026/09/17/RJK4C19-1342.jpg",
+  "plate": "ABC1D23",
+  "image": "anpr/2026/09/17/ABC1D23-1342.jpg",
   "fingerprint": "e3b0c44298fc1c14",
   "duplicate": false
 }`,
@@ -87,7 +87,7 @@ export const pt: Dictionary = {
         label: "Veículo identificado",
         note: "A placa é enriquecida com marca, modelo e cor vindos do registro de veículos.",
         payload: `{
-  "plate": "RJK4C19",
+  "plate": "ABC1D23",
   "fingerprint": "e3b0c44298fc1c14",
   "vehicle": {
     "make": "VW", "model": "Saveiro",
@@ -100,7 +100,7 @@ export const pt: Dictionary = {
         label: "Listas verificadas",
         note: "A placa é cruzada com listas de restrição, cada uma com sua própria prioridade.",
         payload: `{
-  "plate": "RJK4C19",
+  "plate": "ABC1D23",
   "vehicle": { "make": "VW", "model": "Saveiro" },
   "matches": [
     { "list": "stolen_vehicles", "hit": true, "priority": 1 },
@@ -113,7 +113,7 @@ export const pt: Dictionary = {
         label: "Alerta disparado",
         note: "A ocorrência de maior prioridade vence. Um veículo roubado chega ao operador na hora.",
         payload: `{
-  "plate": "RJK4C19",
+  "plate": "ABC1D23",
   "alert": {
     "reason": "stolen_vehicles",
     "priority": 1,
