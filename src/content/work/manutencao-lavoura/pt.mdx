@@ -6,15 +6,15 @@ Esse é o público inteiro, e o desenho leva isso a sério. Não há tela de cad
 
 ## Uma visita, vários serviços
 
-Uma visita de manutenção raramente faz uma coisa só. Troca-se o óleo, um filtro junto, e um bico enquanto a máquina já está aberta. Então um registro lista quantos serviços forem necessários, cada um com preço, quantidade e um “fazer de novo depois de *N* horas ou quilômetros” — e a tela de gastos soma o que cada máquina custou num período, ou detalha uma máquina por serviço.
+Uma visita de manutenção raramente faz uma coisa só. Troca-se o óleo, um filtro junto, e um bico enquanto a máquina já está aberta. Então um registro lista quantos serviços forem necessários, cada um com preço, quantidade e um “fazer de novo depois de *N* horas ou quilômetros” — e a tela de gastos soma o que cada máquina custou em um período, ou detalha uma máquina por serviço.
 
 O que torna os totais confiáveis é pequeno: os serviços são agrupados por um nome que ignora maiúsculas, acentos e espaçamento, então *Troca de Óleo* e *troca de oleo* viram uma linha, e não duas. O campo de descrição sugere os nomes já em uso, que é o que impede o resto de se desalinhar desde o início.
 
 ## Offline exatamente onde importa
 
-Só uma página funciona offline: o formulário de novo registro. Ele fica em cache no service worker, e um registro salvo sem sinal espera numa fila no aparelho e sobe sozinho quando a conexão volta. Navegar e editar são só online, por decisão.
+Só uma página funciona offline: o formulário de novo registro. Ele fica em cache no service worker, e um registro salvo sem sinal espera em uma fila no aparelho e sobe sozinho quando a conexão volta. Navegar e editar são só online, por decisão.
 
-Essa divisão é o ponto. O momento que precisa de offline é estar ao lado de uma máquina no meio da lavoura; todo o resto acontece numa mesa. Fazer a aplicação inteira funcionar offline compraria muita complexidade de sincronização para um caso que não existe.
+Essa divisão é o ponto. O momento que precisa de offline é estar ao lado de uma máquina no meio da lavoura; todo o resto acontece em uma mesa. Fazer a aplicação inteira funcionar offline compraria muita complexidade de sincronização para um caso que não existe.
 
 ## Fotos nunca seguram um registro
 

@@ -48,7 +48,7 @@ export const work: WorkEntry[] = [
     title: { en: "Smart-city platform", pt: "Plataforma de cidade inteligente" },
     tagline: {
       en: "A city's cameras and sensors, in one place, in real time",
-      pt: "As câmeras e sensores de uma cidade, num lugar só, em tempo real",
+      pt: "As câmeras e sensores de uma cidade, em um lugar só, em tempo real",
     },
     summary: {
       en: "My day job at Metropolys. Go services that ingest plate reads, face matches, transit feeds, traffic and weather telemetry, and the parts of the web product where operators search a plate, follow a vehicle across the city and receive watchlist alerts.",
@@ -73,7 +73,7 @@ export const work: WorkEntry[] = [
     },
     summary: {
       en: "Farm-equipment maintenance for two people — an agronomist and a farm manager — recorded on a phone in the field, often without signal. One Go binary and one SQLite file on a small server, with an offline outbox and a photo queue that never hold a record back.",
-      pt: "Manutenção de máquinas agrícolas para duas pessoas — um agrônomo e um gerente de fazenda — registrada no celular, no campo, muitas vezes sem sinal. Um binário Go e um arquivo SQLite num servidor pequeno, com uma fila offline e uma fila de fotos que nunca seguram um registro.",
+      pt: "Manutenção de máquinas agrícolas para duas pessoas — um agrônomo e um gerente de fazenda — registrada no celular, no campo, muitas vezes sem sinal. Um binário Go e um arquivo SQLite em um servidor pequeno, com uma fila offline e uma fila de fotos que nunca seguram um registro.",
     },
     role: { en: "Sole author", pt: "Autor único" },
   },
@@ -112,7 +112,7 @@ export const work: WorkEntry[] = [
     },
     summary: {
       en: "A transport company whose customers found it by phone number alone. A single prerendered page that loads fast on a truck-stop connection, puts a WhatsApp conversation one tap away, and only loads analytics after the visitor consents.",
-      pt: "Uma transportadora cujos clientes a encontravam só pelo telefone. Uma página única pré-renderizada que carrega rápido numa conexão de posto de estrada, coloca uma conversa no WhatsApp a um toque e só carrega analytics depois que o visitante consente.",
+      pt: "Uma transportadora cujos clientes a encontravam só pelo telefone. Uma página única pré-renderizada que carrega rápido em uma conexão de posto de estrada, coloca uma conversa no WhatsApp a um toque e só carrega analytics depois que o visitante consente.",
     },
     role: { en: "Sole author", pt: "Autor único" },
   },

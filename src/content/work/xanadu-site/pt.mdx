@@ -4,7 +4,7 @@ Uma transportadora sem nenhuma presença na web. Os clientes a encontravam do je
 
 ## A restrição que definiu tudo
 
-O público abre isso no celular, com frequência numa conexão ruim — um posto de estrada, uma doca de carregamento, o acostamento. E, quando decide entrar em contato, faz isso pelo WhatsApp. Não por e-mail, nem por um formulário que manda a mensagem para uma caixa que ninguém acompanha.
+O público abre isso no celular, com frequência em uma conexão ruim — um posto de estrada, uma doca de carregamento, o acostamento. E, quando decide entrar em contato, faz isso pelo WhatsApp. Não por e-mail, nem por um formulário que manda a mensagem para uma caixa que ninguém acompanha.
 
 Isso resolveu o design antes de qualquer decisão visual:
 
@@ -14,7 +14,7 @@ Isso resolveu o design antes de qualquer decisão visual:
 
 ## Pré-renderizado, e migrado para Next.js por isso
 
-A primeira versão saiu em Vite. Em junho o site foi reconstruído em Next.js 15 com o App Router, e o motivo foi o público acima: uma página totalmente pré-renderizada aparece numa conexão ruim antes de qualquer JavaScript chegar, e é o que os buscadores indexam. A maior parte das seções são server components; só o cabeçalho, o topo e a animação de revelação ao rolar são client components, porque são as únicas partes que precisam de um hook. As imagens locais passam pelo `next/image`.
+A primeira versão saiu em Vite. Em junho o site foi reconstruído em Next.js 15 com o App Router, e o motivo foi o público acima: uma página totalmente pré-renderizada aparece em uma conexão ruim antes de qualquer JavaScript chegar, e é o que os buscadores indexam. A maior parte das seções são server components; só o cabeçalho, o topo e a animação de revelação ao rolar são client components, porque são as únicas partes que precisam de um hook. As imagens locais passam pelo `next/image`.
 
 ## Manter o vídeo do topo fora do bundle
 
@@ -36,4 +36,4 @@ A correção é um redirecionamento permanente do domínio da Vercel para o dom�
 
 ## Honestidade sobre o escopo
 
-Este é, de longe, o menor sistema deste site: sem backend, sem banco, praticamente sem estado. Está aqui porque as restrições eram reais e mudaram o formato do resultado. Um site feito para alguém num escritório com fibra teria sido outro site — e pior para as pessoas que de fato usam este.
+Este é, de longe, o menor sistema deste site: sem backend, sem banco, praticamente sem estado. Está aqui porque as restrições eram reais e mudaram o formato do resultado. Um site feito para alguém em um escritório com fibra teria sido outro site — e pior para as pessoas que de fato usam este.

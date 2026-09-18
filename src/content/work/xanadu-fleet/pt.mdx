@@ -54,7 +54,7 @@ O Postgres gerenciado do provedor de hospedagem não oferecia recuperação cont
 | --- | --- |
 | Prova de adulteração | Cadeia de hashes por tenant gravada na inserção: `record_hash = sha256(payload canônico ‖ prev_hash ‖ seq)`, com prefixo de tamanho para que fronteiras de campo não colidam, e resultados ordenados para que o hash independa da ordem de inserção |
 | Imutabilidade | Tabelas append-only impostas por triggers, não por convenção |
-| Cópia fora da máquina | Um worker em segundo plano assina cada hash de registro com uma chave **Ed25519** e o grava num bucket com **Object Lock em modo compliance** — uma retenção que nem o dono da conta consegue encurtar |
+| Cópia fora da máquina | Um worker em segundo plano assina cada hash de registro com uma chave **Ed25519** e o grava em um bucket com **Object Lock em modo compliance** — uma retenção que nem o dono da conta consegue encurtar |
 | Sinal de saúde | Atraso de ancoragem, `max(seq) − último seq ancorado`; zero significa que toda inspeção chegou à cópia imutável, e um atraso crescente é o alarme de backup |
 | Checkpoints | Um resumo assinado da cabeça da cadeia uma vez por dia |
 | Auditoria independente | Uma ferramenta `evidence-verify` que lê apenas o bucket e a chave pública publicada — **sem banco de dados** — para que um auditor ou um tribunal confira o log sem confiar no servidor |

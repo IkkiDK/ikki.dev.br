@@ -23,7 +23,7 @@ export const pt: Dictionary = {
   },
 
   hero: {
-    name: "Henrique Kasprzak",
+    name: "Henrique Derviche Kasprzak",
     photoAlt: "Retrato de Henrique Kasprzak",
     headline: "Construo sistemas que leem o mundo físico e mantêm os dados íntegros.",
     intro:
