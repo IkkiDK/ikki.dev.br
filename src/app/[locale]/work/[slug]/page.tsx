@@ -93,7 +93,12 @@ export default async function CaseStudyPage({ params }: Params) {
       </div>
 
       <nav className="mt-24 border-t pt-8">
-        <Link href={`/${locale}/work/${next.slug}`} className="group block">
+        <Link
+          href={`/${locale}/work/${next.slug}`}
+          data-event="case_study_open"
+          data-event-label={next.slug}
+          className="group block"
+        >
           <span className="font-[family-name:var(--font-display)] text-[0.8rem] text-[var(--fg-faint)]">
             {dict.work.read}
           </span>

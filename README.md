@@ -42,3 +42,5 @@ so a missing file fails the build rather than shipping a broken page.
 - Theme: light by default, dark via `prefers-color-scheme` or the toggle, stored in `localStorage`.
 - MDX plugins are referenced by name in `next.config.ts` because Turbopack serialises loader options.
 - Résumé PDFs live in `public/` and are linked per locale from `src/lib/site.ts`.
+- Analytics: Google Analytics 4, production builds only. Add `data-event="<name>"` (and an optional
+  `data-event-label`) to any element to report its clicks; see `src/components/analytics.tsx`.

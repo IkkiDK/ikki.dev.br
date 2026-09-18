@@ -16,6 +16,8 @@ export function WorkRow({
     <li className="border-t">
       <Link
         href={`/${locale}/work/${entry.slug}`}
+        data-event="case_study_open"
+        data-event-label={entry.slug}
         className="group grid gap-x-8 gap-y-2 py-8 md:grid-cols-[9rem_minmax(0,1fr)]"
       >
         <p className="font-[family-name:var(--font-display)] text-[0.85rem] text-[var(--fg-faint)] md:pt-1.5">

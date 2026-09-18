@@ -32,6 +32,7 @@ export function SiteHeader({ locale, dict }: { locale: Locale; dict: Dictionary 
             <NavLink href={`/${locale}/about`}>{dict.nav.about}</NavLink>
             <a
               href={site.resume[locale]}
+              data-event="resume_download"
               className="py-1 font-[family-name:var(--font-display)] text-[0.95rem] text-[var(--fg-muted)] transition-colors hover:text-[var(--fg)]"
             >
               {dict.nav.resume}

@@ -17,6 +17,8 @@ export const site = {
     display: "+55 42 99940-5868",
   },
   repo: "https://github.com/IkkiDK/ikki.dev.br",
+  /** Google Analytics 4 measurement ID; public by nature, it ships in the page. */
+  analyticsId: "G-802KNWQW5W",
   resume: {
     en: "/henrique-kasprzak-resume.pdf",
     pt: "/henrique-kasprzak-curriculo.pdf",

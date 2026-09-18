@@ -40,6 +40,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               </Link>
               <a
                 href={`https://wa.me/${site.whatsapp.number}`}
+                data-event="cta_whatsapp"
                 className="rounded-full border border-[var(--line-strong)] px-5 py-2.5 font-[family-name:var(--font-display)] text-[0.92rem] text-[var(--hero-fg)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent-ink)]"
               >
                 {dict.hero.whatsappCta}

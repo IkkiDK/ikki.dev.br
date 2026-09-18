@@ -102,6 +102,7 @@ export default async function AboutPage({ params }: Params) {
             label={dict.contact.whatsappLabel}
             href={`https://wa.me/${site.whatsapp.number}`}
             value={site.whatsapp.display}
+            event="cta_whatsapp"
           />
           <ContactItem label={dict.contact.githubLabel} href={site.github} value={site.githubHandle} />
           <ContactItem label={dict.contact.linkedinLabel} href={site.linkedin} value={site.linkedinHandle} />
@@ -109,6 +110,7 @@ export default async function AboutPage({ params }: Params) {
             label={dict.contact.resumeLabel}
             href={site.resume[locale]}
             value={dict.contact.resumeNote}
+            event="resume_download"
           />
         </dl>
       </section>
@@ -116,7 +118,17 @@ export default async function AboutPage({ params }: Params) {
   );
 }
 
-function ContactItem({ label, href, value }: { label: string; href: string; value: string }) {
+function ContactItem({
+  label,
+  href,
+  value,
+  event,
+}: {
+  label: string;
+  href: string;
+  value: string;
+  event?: string;
+}) {
   return (
     <div>
       <dt className="font-[family-name:var(--font-display)] text-[0.8rem] text-[var(--fg-faint)]">
@@ -125,6 +137,7 @@ function ContactItem({ label, href, value }: { label: string; href: string; valu
       <dd className="mt-1">
         <a
           href={href}
+          data-event={event}
           className="break-words underline decoration-[var(--line-strong)] underline-offset-4 transition-colors hover:decoration-[var(--accent)]"
         >
           {value}

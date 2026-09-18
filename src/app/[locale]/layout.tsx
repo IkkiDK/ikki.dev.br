@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Archivo, JetBrains_Mono, Source_Serif_4 } from "next/font/google";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
+import { Analytics } from "@/components/analytics";
 import { PersonSchema } from "@/components/person-schema";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -83,6 +84,7 @@ export default async function LocaleLayout({
         <SiteHeader locale={typed} dict={dict} />
         <main id="main">{children}</main>
         <SiteFooter dict={dict} />
+        <Analytics />
       </body>
     </html>
   );
