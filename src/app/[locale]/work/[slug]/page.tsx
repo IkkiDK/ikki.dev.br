@@ -22,6 +22,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     path: `/work/${slug}`,
     title: `${entry.title[locale]} — ${entry.tagline[locale]}`,
     description: entry.summary[locale],
+    image: `/${locale}/work/${slug}/opengraph-image`,
   });
 }
 

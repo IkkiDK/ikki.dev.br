@@ -16,12 +16,15 @@ export function pageMetadata({
   path,
   title,
   description,
+  image = `/${locale}/opengraph-image`,
 }: {
   locale: Locale;
   /** Route below the locale segment, "" for the locale home. */
   path: string;
   title: string;
   description: string;
+  /** Defaults to the locale-wide card; a segment with its own opengraph-image passes that instead. */
+  image?: string;
 }): Metadata {
   return {
     title,
@@ -41,7 +44,7 @@ export function pageMetadata({
       title,
       description,
       locale: htmlLang[locale].replace("-", "_"),
-      images: [{ url: `/${locale}/opengraph-image`, ...ogImage }],
+      images: [{ url: image, ...ogImage }],
     },
     twitter: { card: "summary_large_image", title, description },
   };
